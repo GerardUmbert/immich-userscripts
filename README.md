@@ -10,7 +10,7 @@ Tampermonkey userscripts for the Immich web UI. They only change what your brows
 
 ## Why these exist
 
-Archived assets are hidden from the timeline, and *Recently added* is a fixed view of the latest uploads. The Immich maintainers decided not to add filters to it. The problem shows up with automation: if a workflow archives new uploads as they arrive, they disappear from every view that matters, and the Archive page sorts by date taken, so they end up among thousands of older archived items. Archived is meant to be hidden, not unreachable, so these scripts add the missing controls on the client side.
+Archived assets are hidden from the timeline, and *Recently added* is a fixed view of the latest uploads. The Immich maintainers decided not to add filters to it ([discussion #32416](https://github.com/immich-app/immich/discussions/32416)). The problem shows up with automation: if a workflow archives new uploads as they arrive, they disappear from every view that matters, and the Archive page sorts by date taken, so they end up among thousands of older archived items. Archived is meant to be hidden, not unreachable, so these scripts add the missing controls on the client side.
 
 ## Install
 
