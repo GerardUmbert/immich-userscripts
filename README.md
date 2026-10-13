@@ -5,7 +5,7 @@ Tampermonkey userscripts for the Immich web UI. They only change what your brows
 | Script | What it does |
 | --- | --- |
 | [immich-recently-added-archived](scripts/immich-recently-added-archived.user.js) | Adds an eye toggle at the right end of the *Recently added* title bar ("Hiding archived" / "Showing archived"). Archived items get Immich's archive icon in the bottom-right corner of the thumbnail. |
-| [immich-archive-sort-added](scripts/immich-archive-sort-added.user.js) | Sorts the *Archive* page by the date items were added to Immich (newest first) instead of the date they were taken. A button at the right end of the title bar ("Sorted by date added" / "Sorted by date taken") switches to Immich's own order for that visit. |
+| [immich-archive-sort-added](scripts/immich-archive-sort-added.user.js) | Sorts the *Archive* and *Locked folder* pages by the date items were added to Immich (newest first) instead of the date they were taken. A button in the title bar ("Sorted by date added" / "Sorted by date taken") switches to Immich's own order for that visit. |
 | [immich-albums-hide-archived](scripts/immich-albums-hide-archived.user.js) | Hides archived items inside albums by default. An eye button, crossed out while they are hidden, sits with the action buttons in the album's top bar. |
 
 ## Why these exist
@@ -24,7 +24,7 @@ The choice is never remembered: every page load, and every album you open, start
 
 - **Recently added:** assets from partners are not listed while archived items are shown. The server refuses to combine them with archived assets.
 - **Recently added:** the Archive/Unarchive action can show the wrong state until you reload, because the script presents archived assets to the app as normal ones.
-- **Archive:** the choice is never remembered either; every page load sorts by date added. The date headings show when items were added, not when they were taken. The dates are in UTC, so an item added just after midnight local time can appear under the previous or next day. The photo viewer still shows the real capture date.
+- **Archive and Locked folder:** the choice is never remembered either; every page load sorts by date added. The date headings show when items were added, not when they were taken. The dates are in UTC, so an item added just after midnight local time can appear under the previous or next day. The photo viewer still shows the real capture date.
 - **Albums:** the asset count in the album header still counts archived items while they are hidden.
 
 ## How they work

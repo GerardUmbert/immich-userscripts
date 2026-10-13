@@ -83,6 +83,18 @@ export const anchors = [
   },
   {
     scripts: ['archive-sort'],
+    file: 'web/src/routes/(user)/locked/[[photos=photos]]/[[assetId=id]]/+page.svelte',
+    match: /const options = \{ visibility: AssetVisibility\.Locked \};/,
+    means: 'the Locked folder page asks for visibility=locked and sets no ordering of its own',
+  },
+  {
+    scripts: ['archive-sort'],
+    file: 'web/src/routes/(user)/locked/[[photos=photos]]/[[assetId=id]]/+page.svelte',
+    match: /<UserPageLayout\s+title=\{data\.meta\.title\}\s+actions=\{\[LockSession\]\}/,
+    means: 'the Locked folder page shows its title and a single Lock action through UserPageLayout (the button goes before it)',
+  },
+  {
+    scripts: ['archive-sort'],
     file: BUCKET_DTO,
     match: /orderBy:\s*AssetOrderBySchema\.optional\(\)/,
     means: 'the timeline endpoints accept an optional orderBy query parameter',

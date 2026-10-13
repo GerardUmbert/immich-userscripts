@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Immich: sort the archive by date added
-// @description  Orders the Archive page by upload date (newest first), with a button next to the title to switch back to capture date.
-// @version      1.1.0
+// @name         Immich: sort archive and locked folder by date added
+// @description  Orders the Archive and Locked folder pages by upload date (newest first), with a button next to the title to switch back to capture date.
+// @version      1.2.0
 // @updateURL    https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-archive-sort-added.user.js
 // @downloadURL  https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-archive-sort-added.user.js
 // @include      /^https?:\/\/immich\..*/
@@ -12,25 +12,26 @@
 // Runs on any site whose host starts with "immich." (for example immich.yourdomain.com).
 // For another address (an IP or localhost), change the @include line above.
 //
-// How it works: the Archive page asks the server for its months and assets ordered by
-// capture date. The script adds `orderBy=createdAt` to those requests, so the server
-// groups and sorts by the date each asset was added to Immich, like Recently added does.
+// How it works: the Archive and Locked folder pages ask the server for their months and
+// assets ordered by capture date. The script adds `orderBy=createdAt` to those requests,
+// so the server groups and sorts by the date each asset was added to Immich, like Recently
+// added does.
 //
-// The Archive page itself still assumes capture-date order and would drop any asset that
-// falls outside the month it asked for. So the script also rewrites the month data: each
+// Those pages themselves still assume capture-date order and would drop any asset that
+// falls outside the month they asked for. So the script also rewrites the month data: each
 // asset's capture date is replaced by its upload date (in UTC, to match how the server
 // builds the months). Side effect: the date headings show when assets were added, not
 // when they were taken. The photo viewer still shows the real capture date.
 //
-// The default is date added. The button at the right end of the title bar switches to
-// Immich's own order (date taken) for that visit; it is never remembered, so every page
-// load starts with date added again.
+// The default is date added. The button in the title bar switches to Immich's own order
+// (date taken) for that visit; it is never remembered, so every page load starts with
+// date added again.
 
 (() => {
   'use strict';
 
   const PENDING_KEY = 'immich-userscript:archive:sort-by-taken-once';
-  const PAGE_PATH = /^\/archive(\/|$)/;
+  const PAGE_PATH = /^\/(archive|locked)(\/|$)/;
   const TIMELINE_API = /\/api\/timeline\/buckets?$/;
   const TIMELINE_BUCKET = /\/api\/timeline\/bucket$/;
 
@@ -40,24 +41,27 @@
     try {
       const value = sessionStorage.getItem(PENDING_KEY);
       sessionStorage.removeItem(PENDING_KEY);
-      return value === '1';
+      return value;
     } catch {
-      return false;
+      return null;
     }
   };
 
-  const setPending = () => {
+  const setPending = (currentPage) => {
     try {
-      sessionStorage.setItem(PENDING_KEY, '1');
+      sessionStorage.setItem(PENDING_KEY, currentPage);
     } catch {
       // storage blocked: the order will just switch back after the reload
     }
   };
 
-  // whether Immich's own order (date taken) is currently in use
-  let byTaken = takePending();
+  // 'archive' or 'locked' while on one of those pages, otherwise null
+  const page = () => location.pathname.match(PAGE_PATH)?.[1] ?? null;
 
-  const sortsByAdded = () => !byTaken && PAGE_PATH.test(location.pathname);
+  // the page that is currently ordered by date taken (Immich's own order), if any
+  let takenPage = takePending();
+
+  const sortsByAdded = () => page() !== null && page() !== takenPage;
 
   // --- request and response rewriting --------------------------------------
 
@@ -138,6 +142,7 @@
       'font-size:14px',
       'cursor:pointer',
       'white-space:nowrap',
+      'margin-inline-start:auto',
     ].join(';');
     el.addEventListener('mouseenter', () => (el.style.background = 'rgba(128,128,128,.18)'));
     el.addEventListener('mouseleave', () => (el.style.background = 'transparent'));
@@ -154,7 +159,7 @@
 
     el.addEventListener('click', () => {
       if (sortsByAdded()) {
-        setPending();
+        setPending(page());
       }
       // the timeline loads its months once, so reload to fetch in the other order
       location.reload();
@@ -163,13 +168,13 @@
   };
 
   const sync = () => {
-    const onPage = PAGE_PATH.test(location.pathname);
-    if (byTaken && !onPage) {
-      // left the page: the next visit sorts by date added again
-      byTaken = false;
+    const onPage = page() !== null;
+    if (takenPage !== null && takenPage !== page()) {
+      // left that page: the next visit sorts by date added again
+      takenPage = null;
     }
 
-    // the title bar: [title] on the left, anything else pushed to the right
+    // the title bar: the title on the left, then (on some pages) the page's own action buttons
     const bar = onPage ? document.getElementById('user-page-header')?.closest('div.justify-between') : null;
     if (!bar) {
       button?.remove();
@@ -179,7 +184,8 @@
 
     if (!button || !bar.contains(button)) {
       button = createButton();
-      bar.append(button);
+      // before the page's own action buttons (the Locked folder has one), so ours sits next to them
+      bar.insertBefore(button, bar.children[1] ?? null);
     }
     render();
   };
