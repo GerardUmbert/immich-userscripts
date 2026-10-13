@@ -3,6 +3,7 @@ name: Check upstream Immich
 # Weekly: if Immich has published a stable release newer than the one the scripts were
 # checked against (checkedAgainst in anchors.mjs), check every assumption against it.
 # If one broke, open an issue naming the scripts that are affected.
+# If every one holds, move checkedAgainst to the new release (a commit on main).
 on:
   schedule:
     - cron: '0 7 * * 1' # Mondays 07:00 UTC
@@ -12,12 +13,12 @@ on:
         description: 'Tag to check (default: latest stable Immich release)'
         required: false
       dry_run:
-        description: 'Print the report only, do not open an issue'
+        description: 'Print the report only: do not open an issue or move checkedAgainst'
         type: boolean
         default: false
 
 permissions:
-  contents: read
+  contents: write
   issues: write
 
 jobs:
@@ -62,7 +63,7 @@ jobs:
           node tools/check.mjs diff "$BASELINE" "$TARGET" > diff.txt || true
           {
             if [ "$status" -eq 0 ]; then
-              echo "Immich **$TARGET** is out and every assumption still holds. If the scripts also behave correctly on it, bump \`checkedAgainst\` in \`anchors.mjs\`."
+              echo "Immich **$TARGET** is out and every assumption still holds, so \`checkedAgainst\` moves to it (not on a dry run)."
             else
               echo "Immich **$TARGET** is out and it breaks assumptions the scripts rely on (last checked against **$BASELINE**)."
             fi
@@ -76,6 +77,24 @@ jobs:
           } > report.md
           cat report.md >> "$GITHUB_STEP_SUMMARY"
           echo "broken=$([ "$status" -eq 2 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Move checkedAgainst to the new release
+        if: steps.report.outputs.broken == 'false' && env.DRY_RUN != 'true'
+        env:
+          BASELINE: ${{ steps.versions.outputs.baseline }}
+          TARGET: ${{ steps.versions.outputs.target }}
+        run: |
+          # never move backwards, for example when a manual run names an older tag
+          newest="$(printf '%s\n%s\n' "$BASELINE" "$TARGET" | sort -V | tail -1)"
+          if [ "$newest" != "$TARGET" ]; then
+            echo "$TARGET is not newer than $BASELINE: leaving checkedAgainst alone."
+            exit 0
+          fi
+          sed -i "s/^export const checkedAgainst = '.*';/export const checkedAgainst = '$TARGET';/" anchors.mjs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Checked against Immich $TARGET: every assumption holds"
+          git push
 
       - name: Open an issue
         if: steps.report.outputs.broken == 'true' && env.DRY_RUN != 'true'

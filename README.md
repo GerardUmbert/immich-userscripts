@@ -38,8 +38,8 @@ node tools/check.mjs diff <oldTag> <newTag>  # which anchored files changed betw
 Two GitHub Actions run this:
 
 - **Check script assumptions** runs on every push or pull request that touches a script, `anchors.mjs` or `tools/`. It catches a new feature that was never given an anchor.
-- **Check upstream Immich** runs every Monday. If Immich has a stable release newer than `checkedAgainst` in `anchors.mjs`, it checks the assumptions against it and opens an issue ("Immich <tag> released: userscripts need a fix") only if one is broken. It opens at most one issue per release. You can also run it from the Actions tab, with an optional tag and a dry-run switch.
+- **Check upstream Immich** runs every Monday. If Immich has a stable release newer than `checkedAgainst` in `anchors.mjs`, it checks the assumptions against it. If one is broken it opens an issue ("Immich <tag> released: userscripts need a fix"), at most one per release, and leaves `checkedAgainst` alone. If every assumption holds, it moves `checkedAgainst` to the new release with a commit on `main`, and never moves it backwards. You can also run it from the Actions tab, with an optional tag and a dry-run switch (which skips both the issue and the commit).
 
-An unbroken check means the code the scripts depend on is still there, not that they work. After a release, open *Recently added* and an album and try the eye buttons, then bump `checkedAgainst` in `anchors.mjs`.
+A passing check means the code the scripts depend on is still there, not that they work, and `checkedAgainst` moves on without anyone looking. After a release, open *Recently added* and an album and try the eye buttons. If an issue was opened, fix the scripts or the anchors, then set `checkedAgainst` to the new release by hand.
 
 When you change a script so it relies on something new, add an anchor for it in `anchors.mjs`.
