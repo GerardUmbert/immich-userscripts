@@ -1,0 +1,42 @@
+name: Check script assumptions
+
+# Whenever a script or the list of assumptions changes, verify that every assumption in
+# anchors.mjs still holds in the Immich version they were written against. Catches a new
+# script feature whose anchor was never added, or an anchor that is wrong.
+on:
+  push:
+    paths:
+      - 'scripts/**'
+      - 'anchors.mjs'
+      - 'tools/**'
+  pull_request:
+    paths:
+      - 'scripts/**'
+      - 'anchors.mjs'
+      - 'tools/**'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Immich tag to check (default: checkedAgainst in anchors.mjs)'
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  anchors:
+    runs-on: ubuntu-latest
+    env:
+      INPUT_REF: ${{ inputs.ref }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Fetch the reference source
+        run: node tools/check.mjs setup ${INPUT_REF}
+
+      - name: Check assumptions
+        run: node tools/check.mjs anchors ${INPUT_REF}

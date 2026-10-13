@@ -1,0 +1,2 @@
+# Reference copy of Immich's source (recreate with: node tools/check.mjs setup)
+/immich/

@@ -1,0 +1,91 @@
+name: Check upstream Immich
+
+# Weekly: if Immich has published a stable release newer than the one the scripts were
+# checked against (checkedAgainst in anchors.mjs), check every assumption against it.
+# If one broke, open an issue naming the scripts that are affected.
+on:
+  schedule:
+    - cron: '0 7 * * 1' # Mondays 07:00 UTC
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Tag to check (default: latest stable Immich release)'
+        required: false
+      dry_run:
+        description: 'Print the report only, do not open an issue'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      INPUT_TARGET: ${{ inputs.target }}
+      DRY_RUN: ${{ inputs.dry_run }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Work out what to check
+        id: versions
+        run: |
+          baseline="$(node --input-type=module -e "import { checkedAgainst } from './anchors.mjs'; console.log(checkedAgainst)")"
+          target="${INPUT_TARGET:-$(gh api repos/immich-app/immich/releases/latest --jq .tag_name)}"
+          echo "baseline=$baseline" >> "$GITHUB_OUTPUT"
+          echo "target=$target" >> "$GITHUB_OUTPUT"
+          if [ "$baseline" = "$target" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Immich $target is the version the scripts were checked against. Nothing to do." | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check the assumptions against the new release
+        id: report
+        if: steps.versions.outputs.changed == 'true'
+        env:
+          BASELINE: ${{ steps.versions.outputs.baseline }}
+          TARGET: ${{ steps.versions.outputs.target }}
+        run: |
+          node tools/check.mjs setup "$BASELINE"
+          node tools/check.mjs setup "$TARGET"
+          status=0
+          node tools/check.mjs anchors "$TARGET" > anchors.txt || status=$?
+          node tools/check.mjs diff "$BASELINE" "$TARGET" > diff.txt || true
+          {
+            if [ "$status" -eq 0 ]; then
+              echo "Immich **$TARGET** is out and every assumption still holds. If the scripts also behave correctly on it, bump \`checkedAgainst\` in \`anchors.mjs\`."
+            else
+              echo "Immich **$TARGET** is out and it breaks assumptions the scripts rely on (last checked against **$BASELINE**)."
+            fi
+            echo
+            echo '```'
+            cat anchors.txt
+            echo
+            echo "--- anchored files changed between $BASELINE and $TARGET ---"
+            cat diff.txt
+            echo '```'
+          } > report.md
+          cat report.md >> "$GITHUB_STEP_SUMMARY"
+          echo "broken=$([ "$status" -eq 2 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Open an issue
+        if: steps.report.outputs.broken == 'true' && env.DRY_RUN != 'true'
+        env:
+          TARGET: ${{ steps.versions.outputs.target }}
+        run: |
+          title="Immich $TARGET released: userscripts need a fix"
+          existing="$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')"
+          if [ -n "$existing" ]; then
+            echo "Issue #$existing already open for $TARGET."
+          else
+            gh issue create --title "$title" --body-file report.md
+          fi
