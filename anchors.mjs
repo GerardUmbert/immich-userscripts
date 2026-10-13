@@ -112,7 +112,32 @@ export const anchors = [
     means: 'each thumbnail carries data-asset="<id>" (the badge is attached through it)',
   },
 
+  {
+    scripts: ['recently-added'],
+    file: 'web/src/lib/components/layouts/UserPageLayout.svelte',
+    match: /export const headerId = 'user-page-header'[\s\S]*justify-between[\s\S]*id=\{headerId\}/,
+    means: 'the page title has id "user-page-header" and sits in a justify-between bar (the eye is appended to that bar)',
+  },
+  {
+    scripts: ['recently-added'],
+    file: RECENTLY_ADDED,
+    match: /<UserPageLayout[^>]*title=\{data\.meta\.title\}/,
+    means: 'the Recently added page shows its title through UserPageLayout, with no buttons of its own',
+  },
+
   // --- albums: hide archived -------------------------------------------------
+  {
+    scripts: ['albums'],
+    file: 'web/src/lib/components/shared-components/ControlAppBar.svelte',
+    match: /id="control-bar"[\s\S]*<ControlBarOverflow>[\s\S]*\{@render trailing\(\)\}/,
+    means: 'the top bar has id "control-bar" and puts the trailing action buttons in ControlBarOverflow (the eye is added there)',
+  },
+  {
+    scripts: ['albums'],
+    file: ALBUM_PAGE,
+    match: /<ControlAppBar backIcon=\{mdiArrowLeft\}[\s\S]*\{#snippet trailing\(\)\}[\s\S]*<ActionButton action=\{Actions\.Share\} \/>/,
+    means: 'the normal album view has a top bar with trailing action buttons and no leading title',
+  },
   {
     scripts: ['albums'],
     file: ALBUM_PAGE,

@@ -4,8 +4,8 @@ Tampermonkey userscripts for the Immich web UI. They only change what your brows
 
 | Script | What it does |
 | --- | --- |
-| [immich-recently-added-archived](scripts/immich-recently-added-archived.user.js) | Adds a **Show archived** checkbox to *Recently added* (off by default). Archived items get Immich's archive icon in the bottom-right corner of the thumbnail. |
-| [immich-albums-hide-archived](scripts/immich-albums-hide-archived.user.js) | Hides archived items inside albums by default, with a **Show archived** checkbox to bring them back. |
+| [immich-recently-added-archived](scripts/immich-recently-added-archived.user.js) | Adds an eye toggle at the right end of the *Recently added* title bar ("Hiding archived" / "Showing archived"). Archived items get Immich's archive icon in the bottom-right corner of the thumbnail. |
+| [immich-albums-hide-archived](scripts/immich-albums-hide-archived.user.js) | Hides archived items inside albums by default. An eye button, crossed out while they are hidden, sits with the action buttons in the album's top bar. |
 
 ## Install
 
@@ -13,11 +13,11 @@ Tampermonkey userscripts for the Immich web UI. They only change what your brows
 2. Open a script's **Raw** link on GitHub. Tampermonkey offers to install it, and checks this repo for updates afterward.
 3. The scripts run on hosts that start with `immich.` (for example `immich.yourdomain.com`). For another address, change the `@include` line at the top of the script, for example `// @include /^http:\/\/localhost:2283\/.*/`.
 
-The checkbox is a small pill at the bottom center of the page. Its state is remembered per browser, and toggling it reloads the page.
+The choice is never remembered: every page load, and every album you open, starts with archived items hidden. Clicking the eye reloads the page once with archived items shown; leaving the page or reloading again hides them.
 
 ## Known limitations
 
-- **Recently added:** assets from partners are not listed while *Show archived* is checked. The server refuses to combine them with archived assets.
+- **Recently added:** assets from partners are not listed while archived items are shown. The server refuses to combine them with archived assets.
 - **Recently added:** the Archive/Unarchive action can show the wrong state until you reload, because the script presents archived assets to the app as normal ones.
 - **Albums:** the asset count in the album header still counts archived items while they are hidden.
 
@@ -40,6 +40,6 @@ Two GitHub Actions run this:
 - **Check script assumptions** runs on every push or pull request that touches a script, `anchors.mjs` or `tools/`. It catches a new feature that was never given an anchor.
 - **Check upstream Immich** runs every Monday. If Immich has a stable release newer than `checkedAgainst` in `anchors.mjs`, it checks the assumptions against it and opens an issue ("Immich <tag> released: userscripts need a fix") only if one is broken. It opens at most one issue per release. You can also run it from the Actions tab, with an optional tag and a dry-run switch.
 
-An unbroken check means the code the scripts depend on is still there, not that they work. After a release, open *Recently added* and an album and try the checkboxes, then bump `checkedAgainst` in `anchors.mjs`.
+An unbroken check means the code the scripts depend on is still there, not that they work. After a release, open *Recently added* and an album and try the eye buttons, then bump `checkedAgainst` in `anchors.mjs`.
 
 When you change a script so it relies on something new, add an anchor for it in `anchors.mjs`.

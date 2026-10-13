@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Immich: show archived in Recently added
-// @description  Adds a "Show archived" checkbox to the Recently added page (off by default).
-// @version      1.1.0
+// @description  Adds an eye toggle next to the Recently added title to show archived items (hidden by default).
+// @version      1.3.0
 // @updateURL    https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-recently-added-archived.user.js
 // @downloadURL  https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-recently-added-archived.user.js
 // @include      /^https?:\/\/immich\..*/
@@ -13,10 +13,10 @@
 // For another address (an IP or localhost), change the @include line above.
 //
 // How it works: the Recently added page asks the server for `visibility=timeline`.
-// When the box is checked the script removes that parameter from the request. The
+// When archived items are shown the script removes that parameter from the request. The
 // server then returns archived and timeline assets together. It also removes
 // `withPartners`, which the server refuses to combine with archived assets, so
-// partners' assets are not listed while the box is checked.
+// partners' assets are not listed while archived items are shown.
 //
 // The web app also filters on its own: it drops any asset whose visibility is not
 // "timeline" even if the server returned it. So the script relabels archived assets as
@@ -27,26 +27,36 @@
 (() => {
   'use strict';
 
-  const STORAGE_KEY = 'immich-userscript:recently-added:show-archived';
+  const PENDING_KEY = 'immich-userscript:recently-added:show-archived-once';
   const PAGE_PATH = /^\/recently-added(\/|$)/;
   const TIMELINE_API = /\/api\/timeline\/buckets?$/;
   const TIMELINE_BUCKET = /\/api\/timeline\/bucket$/;
 
-  const isEnabled = () => {
+  // The state is deliberately not remembered: every visit starts with archived items hidden.
+  // Toggling it has to reload the page (the timeline loads its months once), so the
+  // choice is handed to that single reload through sessionStorage and then forgotten.
+  const takePending = () => {
     try {
-      return localStorage.getItem(STORAGE_KEY) === '1';
+      const value = sessionStorage.getItem(PENDING_KEY);
+      sessionStorage.removeItem(PENDING_KEY);
+      return value === '1';
     } catch {
       return false;
     }
   };
 
-  const setEnabled = (value) => {
+  const setPending = () => {
     try {
-      localStorage.setItem(STORAGE_KEY, value ? '1' : '0');
+      sessionStorage.setItem(PENDING_KEY, '1');
     } catch {
-      // storage blocked: the checkbox simply won't persist
+      // storage blocked: the eye will just switch back after the reload
     }
   };
+
+  // whether archived items are currently shown
+  let revealed = takePending();
+
+  const isEnabled = () => revealed && PAGE_PATH.test(location.pathname);
 
   // --- request rewriting ---------------------------------------------------
 
@@ -151,60 +161,86 @@
     });
   }).observe(document.documentElement, { childList: true, subtree: true });
 
-  // --- checkbox ------------------------------------------------------------
+  // --- eye button next to the page title -----------------------------------
 
-  let widget;
+  // mdiEyeOffOutline / mdiEyeOutline from @mdi/js, the icon set Immich uses
+  const EYE_OFF = 'M2,5.27L3.28,4L20,20.72L18.73,22L15.65,18.92C14.5,19.3 13.28,19.5 12,19.5C7,19.5 2.73,16.39 1,12C1.69,10.24 2.79,8.69 4.19,7.46L2,5.27M12,9A3,3 0 0,1 15,12C15,12.35 14.94,12.69 14.83,13L11,9.17C11.31,9.06 11.65,9 12,9M12,4.5C17,4.5 21.27,7.61 23,12C22.18,14.08 20.79,15.88 19,17.19L17.58,15.76C18.94,14.82 20.06,13.54 20.82,12C19.17,8.64 15.76,6.5 12,6.5C10.91,6.5 9.84,6.68 8.84,7L7.3,5.47C8.74,4.85 10.33,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C12.69,17.5 13.37,17.43 14,17.29L11.72,15C10.29,14.85 9.15,13.71 9,12.28L5.6,8.87C4.61,9.72 3.78,10.78 3.18,12Z';
+  const EYE =
+    'M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9M12,4.5C17,4.5 21.27,7.61 23,12C21.27,16.39 17,19.5 12,19.5C7,19.5 2.73,16.39 1,12C2.73,7.61 7,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C15.76,17.5 19.17,15.36 20.82,12C19.17,8.64 15.76,6.5 12,6.5C8.24,6.5 4.83,8.64 3.18,12Z';
 
-  const createWidget = () => {
-    const label = document.createElement('label');
-    label.style.cssText = [
-      'position:fixed',
-      'bottom:16px',
-      'left:50%',
-      'transform:translateX(-50%)',
-      'z-index:30',
-      'display:flex',
+  let button;
+  let caption;
+
+  const render = () => {
+    const shown = isEnabled();
+    button.querySelector('path').setAttribute('d', shown ? EYE : EYE_OFF);
+    caption.textContent = shown ? 'Showing archived' : 'Hiding archived';
+    button.title = shown ? 'Click to hide archived' : 'Click to show archived';
+    button.setAttribute('aria-pressed', String(shown));
+  };
+
+  const createButton = () => {
+    const el = document.createElement('button');
+    el.type = 'button';
+    el.style.cssText = [
+      'display:inline-flex',
       'align-items:center',
       'gap:8px',
-      'padding:8px 16px',
+      'padding:6px 14px',
+      'border:0',
       'border-radius:9999px',
-      'border:1px solid rgba(128,128,128,.4)',
-      'background:color-mix(in srgb, canvas 80%, transparent)',
-      'color:canvastext',
-      'backdrop-filter:blur(8px)',
+      'background:transparent',
+      'color:inherit',
+      'font:inherit',
       'font-size:14px',
       'cursor:pointer',
-      'user-select:none',
+      'white-space:nowrap',
     ].join(';');
+    el.addEventListener('mouseenter', () => (el.style.background = 'rgba(128,128,128,.18)'));
+    el.addEventListener('mouseleave', () => (el.style.background = 'transparent'));
 
-    const box = document.createElement('input');
-    box.type = 'checkbox';
-    box.checked = isEnabled();
-    box.style.cursor = 'pointer';
-    box.addEventListener('change', () => {
-      setEnabled(box.checked);
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('width', '20');
+    svg.setAttribute('height', '20');
+    svg.setAttribute('fill', 'currentColor');
+    svg.append(document.createElementNS('http://www.w3.org/2000/svg', 'path'));
+
+    caption = document.createElement('span');
+    el.append(svg, caption);
+
+    el.addEventListener('click', () => {
+      if (!isEnabled()) {
+        setPending();
+      }
       // the timeline loads its months once, so reload to fetch with the new filter
       location.reload();
     });
-
-    label.append(box, document.createTextNode('Show archived'));
-    return label;
+    return el;
   };
 
   const sync = () => {
     const onPage = PAGE_PATH.test(location.pathname);
-    if (onPage && !widget && document.body) {
-      widget = createWidget();
-      document.body.append(widget);
-    } else if (!onPage && widget) {
-      widget.remove();
-      widget = undefined;
+    if (revealed && !onPage) {
+      // left the page: archived items are hidden again next time
+      revealed = false;
     }
-    if (widget) {
-      widget.style.colorScheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+
+    // the title bar: [title and description] on the left, anything else pushed to the right
+    const bar = onPage ? document.getElementById('user-page-header')?.closest('div.justify-between') : null;
+    if (!bar) {
+      button?.remove();
+      button = undefined;
+      return;
     }
+
+    if (!button || !bar.contains(button)) {
+      button = createButton();
+      bar.append(button);
+    }
+    render();
   };
 
-  // Immich is a single-page app, so watch for navigation instead of page loads.
+  // Immich is a single-page app, so watch for navigation and re-renders instead of page loads.
   setInterval(sync, 500);
 })();
