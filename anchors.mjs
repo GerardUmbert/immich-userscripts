@@ -20,37 +20,37 @@ const ASSET_REPO = 'server/src/repositories/asset.repository.ts';
 export const anchors = [
   // --- both scripts: how the web app talks to the server ---------------------
   {
-    scripts: ['recently-added', 'albums'],
+    scripts: ['recently-added', 'albums', 'archive-sort'],
     file: SDK,
     match: /baseUrl:\s*"\/api"/,
     means: 'the web app calls the API under /api',
   },
   {
-    scripts: ['recently-added', 'albums'],
+    scripts: ['recently-added', 'albums', 'archive-sort'],
     file: SDK,
     match: /`\/timeline\/bucket\$\{QS\.query/,
     means: 'the month data comes from GET /timeline/bucket',
   },
   {
-    scripts: ['recently-added', 'albums'],
+    scripts: ['recently-added', 'albums', 'archive-sort'],
     file: SDK,
     match: /`\/timeline\/buckets\$\{QS\.query/,
     means: 'the month list comes from GET /timeline/buckets',
   },
   {
-    scripts: ['recently-added', 'albums'],
+    scripts: ['recently-added', 'albums', 'archive-sort'],
     file: SDK,
     absent: /defaults[^=]*=\s*\{[^}]*\bfetch\s*:/,
     means: 'the SDK uses the global fetch (a custom fetch would bypass the scripts)',
   },
   {
-    scripts: ['recently-added', 'albums'],
+    scripts: ['recently-added', 'albums', 'archive-sort'],
     file: 'server/src/controllers/timeline.controller.ts',
     match: /@Controller\('timeline'\)[\s\S]*@Get\('buckets'\)[\s\S]*@Get\('bucket'\)/,
     means: 'the server serves /timeline/buckets and /timeline/bucket',
   },
   {
-    scripts: ['recently-added', 'albums'],
+    scripts: ['recently-added', 'albums', 'archive-sort'],
     file: 'server/src/app.common.ts',
     match: /setGlobalPrefix\('api'/,
     means: 'the server prefix is /api',
@@ -66,6 +66,56 @@ export const anchors = [
     file: 'server/src/enum.ts',
     match: /Archive = 'archive',\s*Timeline = 'timeline'/,
     means: "visibility values are the strings 'archive' and 'timeline'",
+  },
+
+  // --- archive: sort by date added -------------------------------------------
+  {
+    scripts: ['archive-sort'],
+    file: 'web/src/routes/(user)/archive/[[photos=photos]]/[[assetId=id]]/+page.svelte',
+    match: /const options = \{ visibility: AssetVisibility\.Archive \};/,
+    means: 'the Archive page asks for visibility=archive and sets no ordering of its own',
+  },
+  {
+    scripts: ['archive-sort'],
+    file: 'web/src/routes/(user)/archive/[[photos=photos]]/[[assetId=id]]/+page.svelte',
+    match: /<UserPageLayout[^>]*title=\{data\.meta\.title\}/,
+    means: 'the Archive page shows its title through UserPageLayout, with no buttons of its own',
+  },
+  {
+    scripts: ['archive-sort'],
+    file: BUCKET_DTO,
+    match: /orderBy:\s*AssetOrderBySchema\.optional\(\)/,
+    means: 'the timeline endpoints accept an optional orderBy query parameter',
+  },
+  {
+    scripts: ['archive-sort'],
+    file: 'server/src/enum.ts',
+    match: /CreatedAt = 'createdAt'/,
+    means: "the orderBy value for date added is the string 'createdAt'",
+  },
+  {
+    scripts: ['archive-sort'],
+    file: 'server/src/utils/database.ts',
+    match: /order === AssetOrderBy\.CreatedAt \? 'asset\.createdAt' : 'localDateTime'\)\}\s*AT TIME ZONE 'UTC'\)/,
+    means: 'with orderBy=createdAt the server builds its months from the upload date, in UTC',
+  },
+  {
+    scripts: ['archive-sort'],
+    file: BUCKET_DTO,
+    match: /TimeBucketAssetResponseSchema[\s\S]*?\bcreatedAt:[\s\S]*?\bfileCreatedAt:[\s\S]*?\blocalOffsetHours:/,
+    means: 'the month data has parallel fileCreatedAt[], localOffsetHours[] and createdAt[] arrays',
+  },
+  {
+    scripts: ['archive-sort'],
+    file: 'web/src/lib/managers/timeline-manager/timeline-month.svelte.ts',
+    match: /getTimes\(\s*bucketAssets\.fileCreatedAt\[i\],\s*bucketAssets\.localOffsetHours\[i\],?\s*\)/,
+    means: 'the web app derives an asset\'s capture date from fileCreatedAt and localOffsetHours (the script overwrites both)',
+  },
+  {
+    scripts: ['archive-sort'],
+    file: 'web/src/lib/managers/timeline-manager/timeline-month.svelte.ts',
+    match: /month !== dateTime\.month \|\| year !== dateTime\.year[\s\S]{0,80}unprocessedAssets/,
+    means: 'the web app drops assets whose date is outside the month requested (why the dates must match the server months)',
   },
 
   // --- recently added: show archived -----------------------------------------
@@ -113,7 +163,7 @@ export const anchors = [
   },
 
   {
-    scripts: ['recently-added'],
+    scripts: ['recently-added', 'archive-sort'],
     file: 'web/src/lib/components/layouts/UserPageLayout.svelte',
     match: /export const headerId = 'user-page-header'[\s\S]*justify-between[\s\S]*id=\{headerId\}/,
     means: 'the page title has id "user-page-header" and sits in a justify-between bar (the eye is appended to that bar)',
