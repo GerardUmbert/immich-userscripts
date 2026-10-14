@@ -14,9 +14,37 @@ Archived assets are hidden from the timeline, and *Recently added* is a fixed vi
 
 ## Install
 
-1. Install [Tampermonkey](https://www.tampermonkey.net/). On Chrome or Edge, turn on **Developer mode** in the extensions page, or userscripts won't run.
-2. Open a script's **Raw** link on GitHub. Tampermonkey offers to install it, and checks this repo for updates afterward.
-3. The scripts run on hosts that start with `immich.` (for example `immich.yourdomain.com`). For another address, change the `@include` line at the top of the script, for example `// @include /^http:\/\/localhost:2283\/.*/`.
+### 1. Install Tampermonkey
+
+Get [Tampermonkey](https://www.tampermonkey.net/) for your browser. Then allow it to run userscripts:
+
+- **Chrome or Edge:** open the extensions page (`chrome://extensions` or `edge://extensions`), turn on **Developer mode**, and open Tampermonkey's **Details**. If there is an **Allow User Scripts** switch, turn it on too. Without these, installed scripts silently do nothing.
+- **Firefox:** nothing extra to do.
+
+### 2. Install the scripts
+
+Click a link below. Tampermonkey opens an install page; click **Install**. Install only the ones you want.
+
+| Script | Install |
+| --- | --- |
+| Show archived in *Recently added* | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-recently-added-archived.user.js) |
+| Sort *Archive* and *Locked folder* by date added | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-archive-sort-added.user.js) |
+| Hide archived in albums | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-albums-hide-archived.user.js) |
+
+The links point at the raw `.user.js` files on `main`. Tampermonkey recognises that file type and shows its install page instead of the code. Each script also declares the same address as its update source, so Tampermonkey picks up new versions by itself (it checks about once a day; **Utilities > Check for userscript updates** in the dashboard does it now).
+
+If the link shows plain code instead of an install page, copy the address and use **Dashboard > Utilities > Import from URL** in Tampermonkey. Or, in the dashboard, create a new script and paste the file's contents over the template.
+
+### 3. Point them at your Immich
+
+The scripts run on hosts that start with `immich.` (for example `immich.yourdomain.com`). If yours is different, such as an IP address or `localhost`, open the script in the Tampermonkey dashboard and add your address under **Settings > User includes**, for example `http://localhost:2283/*`. That survives updates. (Editing the `@include` line in the code works too, but an update overwrites it.)
+
+### 4. Check it works
+
+Reload Immich. Tampermonkey's toolbar icon should show a number for the active scripts. *Recently added* should now have the eye toggle in its title bar.
+
+### Behaviour
+
 
 The choice is never remembered: every page load, and every album you open, starts with archived items hidden. Clicking the eye reloads the page once with archived items shown; leaving the page or reloading again hides them.
 
