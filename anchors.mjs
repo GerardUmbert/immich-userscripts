@@ -207,37 +207,37 @@ export const anchors = [
 
   // --- album: search within it -----------------------------------------------
   {
-    scripts: ['album-search'],
+    scripts: ['album-search', 'album-sort'],
     file: 'server/src/dtos/search.dto.ts',
     match: /albumIds:\s*z\.array\(z\.uuidv4\(\)\)\.optional\(\)/,
     means: 'the search endpoints accept an albumIds filter',
   },
   {
-    scripts: ['album-search'],
+    scripts: ['album-search', 'album-sort'],
     file: 'server/src/dtos/search.dto.ts',
     match: /type:\s*AssetTypeSchema\.optional\(\)/,
     means: 'the search endpoints accept a type filter',
   },
   {
-    scripts: ['album-search'],
+    scripts: ['album-search', 'album-sort'],
     file: 'server/src/enum.ts',
     match: /Image = 'IMAGE',\s*Video = 'VIDEO',\s*Audio = 'AUDIO',\s*Other = 'OTHER'/,
     means: "asset types are the strings 'IMAGE', 'VIDEO', 'AUDIO' and 'OTHER'",
   },
   {
-    scripts: ['album-search'],
+    scripts: ['album-search', 'album-sort'],
     file: 'web/src/routes/(user)/search/[[photos=photos]]/[[assetId=id]]/+page.svelte',
     match: /searchQuery \? JSON\.parse\(searchQuery\) : \{\}[\s\S]*\.\.\.terms,/,
     means: 'the search page takes its whole search from the query address and passes every key on to the API',
   },
   {
-    scripts: ['album-search'],
+    scripts: ['album-search', 'album-sort'],
     file: 'web/src/lib/components/shared-components/ControlAppBar.svelte',
     match: /id="control-bar"[\s\S]*<ControlBarOverflow>[\s\S]*\{@render trailing\(\)\}/,
     means: 'the top bar has id "control-bar" and puts the trailing action buttons in ControlBarOverflow (the button is added there)',
   },
   {
-    scripts: ['album-search'],
+    scripts: ['album-search', 'album-sort'],
     file: ALBUM_PAGE,
     match: /<ControlAppBar backIcon=\{mdiArrowLeft\}[\s\S]*\{#snippet trailing\(\)\}[\s\S]*<ActionButton action=\{Actions\.Share\} \/>/,
     means: 'the normal album view has a top bar with trailing action buttons and no leading title',
@@ -282,13 +282,13 @@ export const anchors = [
   },
 
   {
-    scripts: ['album-search'],
+    scripts: ['album-search', 'album-sort'],
     file: 'server/src/dtos/search.dto.ts',
     match: /visibility:\s*AssetVisibilitySchema\.optional\(\)/,
     means: 'the search endpoints accept a visibility filter',
   },
   {
-    scripts: ['album-search'],
+    scripts: ['album-search', 'album-sort'],
     file: 'web/src/routes/(user)/search/[[photos=photos]]/[[assetId=id]]/+page.svelte',
     match: /visibility: AssetVisibility\.Timeline,\s*\.\.\.searchDto/,
     means: 'the search page leaves archived items out by default and lets the address override that',
