@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Immich: sort search results by date added
-// @description  Orders the search results by upload date (newest first), with a button to switch back to Immich's own order.
-// @version      1.0.1
+// @name         Immich: sort search results
+// @description  Sorts the search results by date added (the default), video length, file size or name, with a sort menu in the top bar.
+// @version      1.1.0
 // @updateURL    https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-search-sort-added.user.js
 // @downloadURL  https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-search-sort-added.user.js
 // @include      /^https?:\/\/immich\..*/
@@ -12,27 +12,59 @@
 // Runs on any site whose host starts with "immich." (for example immich.yourdomain.com).
 // For another address (an IP or localhost), change the @include line above.
 //
-// How it works: the search API cannot order by upload date. Smart search is ordered by
-// relevance and has no ordering option; metadata search only orders by capture date, local
-// date, file size or rating. So the script does the sorting itself: when the search page asks
-// for its first page of results, the script fetches every remaining page of the same search,
-// sorts all the assets by their upload date (createdAt), and hands the app one combined page
-// with nothing after it.
+// How it works: the search API cannot order by upload date, video length or name. Smart search
+// is ordered by relevance and has no ordering option; metadata search only orders by capture
+// date, local date, file size or rating. So the script does the sorting itself: when the search
+// page asks for its first page of results, the script fetches every remaining page of the same
+// search, sorts all the assets, and hands the app one combined page with nothing after it.
 //
 // Side effects: the whole result set is loaded up front (a big search takes longer to show),
-// and the relevance order of smart search is lost while sorted by date added. Loading stops
+// and the relevance order of smart search is lost while a sort is applied. Loading stops
 // after MAX_PAGES pages as a safety limit.
 //
-// The default is date added. The button, in the top bar next to the search field, switches to Immich's own order for that visit; it is
-// never remembered, so every page load starts with date added again.
+// The sort menu in the top bar offers: date added (the default), Immich's own order, longest or
+// shortest video first, largest or smallest file first, and name. Items without a length
+// (photos) go last in the length orders. The choice is never remembered, so every page load
+// starts with date added again.
 
 (() => {
   'use strict';
 
-  const PENDING_KEY = 'immich-userscript:search:own-order-once';
+  const PENDING_KEY = 'immich-userscript:search:sort-once';
   const SEARCH_PAGE = /^\/search(\/|$)/;
   const SEARCH_API = /\/api\/search\/(metadata|smart)$/;
   const MAX_PAGES = 40;
+
+  // Assets that lack the value (photos have no length) go last in both directions.
+  const missingLast = (value, a, b, descending) => {
+    const x = value(a);
+    const y = value(b);
+    if (x === null || y === null) {
+      return (x === null) - (y === null);
+    }
+    return descending ? y - x : x - y;
+  };
+  const duration = (asset) => (typeof asset.duration === 'number' ? asset.duration : null);
+  const size = (asset) => (typeof asset.exifInfo?.fileSizeInByte === 'number' ? asset.exifInfo.fileSizeInByte : null);
+
+  // Each order: its label in the menu and how to compare two assets (negative = a first).
+  // A null compare means Immich's own order, left alone.
+  const SORTS = {
+    added: {
+      label: 'Date added (newest first)',
+      compare: (a, b) => (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0),
+    },
+    taken: { label: "Immich's own order", compare: null },
+    longest: { label: 'Longest video first', compare: (a, b) => missingLast(duration, a, b, true) },
+    shortest: { label: 'Shortest video first', compare: (a, b) => missingLast(duration, a, b, false) },
+    largest: { label: 'Largest file first', compare: (a, b) => missingLast(size, a, b, true) },
+    smallest: { label: 'Smallest file first', compare: (a, b) => missingLast(size, a, b, false) },
+    name: {
+      label: 'Name (A to Z)',
+      compare: (a, b) =>
+        (a.originalFileName ?? '').localeCompare(b.originalFileName ?? '', undefined, { numeric: true, sensitivity: 'base' }),
+    },
+  };
 
   // Switching the order has to reload the page (the results load once), so the choice is
   // handed to that single reload through sessionStorage and then forgotten.
@@ -40,23 +72,23 @@
     try {
       const value = sessionStorage.getItem(PENDING_KEY);
       sessionStorage.removeItem(PENDING_KEY);
-      return value === '1';
+      return value in SORTS ? value : 'added';
     } catch {
-      return false;
+      return 'added';
     }
   };
 
-  let ownOrder = takePending();
+  let mode = takePending();
 
   const onSearchPage = () => SEARCH_PAGE.test(location.pathname);
-  const sortsByAdded = () => onSearchPage() && !ownOrder;
+  const sortsMyself = () => onSearchPage() && SORTS[mode].compare !== null;
 
   // --- request and response rewriting --------------------------------------
 
   const originalFetch = window.fetch;
   window.fetch = async function (input, init) {
     try {
-      if (sortsByAdded()) {
+      if (sortsMyself()) {
         const raw = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
         const url = new URL(raw, location.href);
         const method = (init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase();
@@ -130,8 +162,7 @@
       nextCursor = page.nextCursor;
     }
 
-    const time = (asset) => Date.parse(asset.createdAt) || 0;
-    items.sort((a, b) => time(b) - time(a));
+    items.sort(SORTS[mode].compare);
 
     data.assets = { ...data.assets, items, count: items.length, nextPage: null, nextCursor: null };
     const headers = new Headers(first.headers);
@@ -140,34 +171,111 @@
     return new Response(JSON.stringify(data), { status: first.status, statusText: first.statusText, headers });
   };
 
-  // --- sort button ---------------------------------------------------------
+  // --- sort menu -----------------------------------------------------------
 
-  // mdiCalendarPlus / mdiCameraOutline from @mdi/js, the icon set Immich uses
-  const ICON_ADDED =
-    'M19 19V8H5V19H19M16 1H18V3H19C20.11 3 21 3.9 21 5V19C21 20.11 20.11 21 19 21H5C3.89 21 3 20.1 3 19V5C3 3.89 3.89 3 5 3H6V1H8V3H16V1M11 9.5H13V12.5H16V14.5H13V17.5H11V14.5H8V12.5H11V9.5Z';
-  const ICON_OWN =
-    'M20,4H16.83L15,2H9L7.17,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4M20,18H4V6H8.05L9.88,4H14.12L15.95,6H20V18M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15Z';
+  // mdiSort from @mdi/js, the icon set Immich uses
+  const ICON = 'M3 13H9V11H3V13M3 6V8H21V6H3M3 18H15V16H3V18Z';
 
   let button;
   let caption;
+  let menu;
 
-  const render = () => {
-    const added = sortsByAdded();
-    button.querySelector('path').setAttribute('d', added ? ICON_ADDED : ICON_OWN);
-    caption.textContent = added ? 'Sorted by date added' : "Immich's own order";
-    button.title = added ? "Click to use Immich's own order" : 'Click to sort by date added';
+  const onOutside = (event) => {
+    if (menu && !menu.contains(event.target) && !button?.contains(event.target)) {
+      closeMenu();
+    }
+  };
+
+  const onKey = (event) => {
+    if (event.key === 'Escape') {
+      closeMenu();
+    }
+  };
+
+  const closeMenu = () => {
+    menu?.remove();
+    menu = undefined;
+    document.removeEventListener('mousedown', onOutside, true);
+    document.removeEventListener('keydown', onKey, true);
+  };
+
+  const choose = (key) => {
+    closeMenu();
+    if (key === mode) {
+      return;
+    }
+    try {
+      sessionStorage.setItem(PENDING_KEY, key);
+    } catch {
+      // storage blocked: the order will just switch back after the reload
+    }
+    // the results load once, so reload to fetch them in the other order
+    location.reload();
+  };
+
+  const openMenu = () => {
+    if (menu) {
+      closeMenu();
+      return;
+    }
+    const dark = document.documentElement.classList.contains('dark');
+    menu = document.createElement('div');
+    menu.setAttribute('role', 'menu');
+    menu.style.cssText = [
+      'position:absolute',
+      'top:calc(100% + 4px)',
+      'right:0',
+      'z-index:70',
+      'min-width:220px',
+      'padding:6px',
+      'border-radius:16px',
+      'border:1px solid rgba(128,128,128,.35)',
+      'box-shadow:0 8px 24px rgba(0,0,0,.25)',
+      `background:${dark ? '#1a1b1e' : '#fff'}`,
+      `color:${dark ? '#e5e7eb' : '#1f2937'}`,
+    ].join(';');
+
+    for (const [key, { label }] of Object.entries(SORTS)) {
+      const selected = key === mode;
+      const resting = selected ? 'rgba(128,128,128,.25)' : 'transparent';
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.setAttribute('role', 'menuitemradio');
+      item.setAttribute('aria-checked', String(selected));
+      item.textContent = `${selected ? '✓' : ' '} ${label}`;
+      item.style.cssText = [
+        'display:block',
+        'width:100%',
+        'padding:8px 12px',
+        'border:0',
+        'border-radius:10px',
+        `background:${resting}`,
+        'color:inherit',
+        'font:inherit',
+        'font-size:14px',
+        'text-align:start',
+        'white-space:nowrap',
+        'cursor:pointer',
+      ].join(';');
+      item.addEventListener('mouseenter', () => (item.style.background = 'rgba(128,128,128,.18)'));
+      item.addEventListener('mouseleave', () => (item.style.background = resting));
+      item.addEventListener('click', () => choose(key));
+      menu.append(item);
+    }
+    button.append(menu);
+    document.addEventListener('mousedown', onOutside, true);
+    document.addEventListener('keydown', onKey, true);
   };
 
   const createButton = () => {
-    const el = document.createElement('button');
-    el.type = 'button';
-    // the search bar is centred in the top bar, so the button sits at the bar's right end
-    el.style.cssText = [
-      'position:absolute',
-      'top:50%',
-      'right:24px',
-      'transform:translateY(-50%)',
-      'z-index:1',
+    const el = document.createElement('div');
+    // the search field is centred in the top bar, so the control sits at the bar's right end
+    el.style.cssText = 'position:absolute;top:50%;right:24px;transform:translateY(-50%);z-index:1';
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.title = 'Sort the results';
+    trigger.style.cssText = [
       'display:inline-flex',
       'align-items:center',
       'gap:8px',
@@ -188,34 +296,28 @@
     svg.setAttribute('width', '20');
     svg.setAttribute('height', '20');
     svg.setAttribute('fill', 'currentColor');
-    svg.append(document.createElementNS('http://www.w3.org/2000/svg', 'path'));
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', ICON);
+    svg.append(path);
 
     caption = document.createElement('span');
-    el.append(svg, caption);
-
-    el.addEventListener('click', () => {
-      if (sortsByAdded()) {
-        try {
-          sessionStorage.setItem(PENDING_KEY, '1');
-        } catch {
-          // storage blocked: the order will just switch back after the reload
-        }
-      }
-      // the results load once, so reload to fetch them in the other order
-      location.reload();
-    });
+    caption.textContent = SORTS[mode].label;
+    trigger.append(svg, caption);
+    trigger.addEventListener('click', openMenu);
+    el.append(trigger);
     return el;
   };
 
   const sync = () => {
     if (!onSearchPage()) {
       // left the search: the next visit sorts by date added again
-      ownOrder = false;
+      mode = 'added';
+      closeMenu();
       button?.remove();
       button = undefined;
       return;
     }
-    // the top bar ("control-bar") is absolutely positioned, so it anchors the button
+    // the top bar ("control-bar") is absolutely positioned, so it anchors the control
     const bar = document.getElementById('control-bar');
     if (!bar) {
       button?.remove();
@@ -226,7 +328,6 @@
       button = createButton();
       bar.append(button);
     }
-    render();
   };
 
   // Immich is a single-page app, so watch for navigation instead of page loads.

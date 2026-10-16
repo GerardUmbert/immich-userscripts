@@ -170,6 +170,30 @@ export const anchors = [
 
   {
     scripts: ['search-sort'],
+    file: 'server/src/dtos/asset-response.dto.ts',
+    match: /duration:\s*z\.int32\(\)\.min\(0\)\.nullable\(\)\.describe\('Video\/gif duration in milliseconds/,
+    means: 'each search result has duration in milliseconds (null for photos)',
+  },
+  {
+    scripts: ['search-sort'],
+    file: 'server/src/dtos/asset-response.dto.ts',
+    match: /originalFileName:\s*z\.string\(\)[\s\S]*exifInfo:\s*ExifResponseSchema\.optional\(\)/,
+    means: 'each search result has originalFileName and an optional exifInfo',
+  },
+  {
+    scripts: ['search-sort'],
+    file: 'server/src/dtos/exif.dto.ts',
+    match: /fileSizeInByte:\s*z\.int\(\)/,
+    means: 'exifInfo has fileSizeInByte',
+  },
+  {
+    scripts: ['search-sort'],
+    file: 'web/src/routes/(user)/search/[[photos=photos]]/[[assetId=id]]/+page.svelte',
+    match: /withExif:\s*true/,
+    means: 'the search page asks for exif data (the file size comes with it)',
+  },
+  {
+    scripts: ['search-sort'],
     file: 'web/src/lib/components/shared-components/ControlAppBar.svelte',
     match: /<div class="absolute top-0 w-full[^"]*" id="control-bar">/,
     means: 'the top bar has id "control-bar" and is absolutely positioned (the button is placed inside it)',

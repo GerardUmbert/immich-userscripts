@@ -6,7 +6,7 @@ Tampermonkey userscripts for the Immich web UI. They only change what your brows
 | --- | --- |
 | [immich-recently-added-archived](scripts/immich-recently-added-archived.user.js) | Adds an eye toggle at the right end of the *Recently added* title bar ("Hiding archived" / "Showing archived"). Archived items get Immich's archive icon in the bottom-right corner of the thumbnail. |
 | [immich-archive-sort-added](scripts/immich-archive-sort-added.user.js) | Sorts the *Archive* and *Locked folder* pages by the date items were added to Immich (newest first) instead of the date they were taken. A button in the title bar ("Sorted by date added" / "Sorted by date taken") switches to Immich's own order for that visit. |
-| [immich-search-sort-added](scripts/immich-search-sort-added.user.js) | Sorts search results by the date items were added to Immich (newest first). The search API can't do this, so the script loads all result pages and sorts them itself. A button below the search bar switches back to Immich's own order for that visit. |
+| [immich-search-sort-added](scripts/immich-search-sort-added.user.js) | Adds a sort menu to the search results top bar: date added (the default, newest first), Immich's own order, longest or shortest video, largest or smallest file, and name. The search API can't do most of these, so the script loads all result pages and sorts them itself. |
 | [immich-asset-more-from-day](scripts/immich-asset-more-from-day.user.js) | Adds a "See more from this day" link under the date in the photo viewer's info panel. It opens a search for everything taken that day. |
 | [immich-album-search](scripts/immich-album-search.user.js) | Adds a magnifier button to an album's top bar that searches only inside that album. A small panel asks for the text, whether to match content or file names (`.mp4` finds an extension), the kind of file (any, photos, videos, audio, other), and whether to look at archived items or not. |
 | [immich-search-album-filter](scripts/immich-search-album-filter.user.js) | Adds an *Album* section below *Library* in the search filters (under *Advanced filters*), with a searchable list of your albums. Pick one and every search is limited to it, whatever other filters you use; pick "All albums" to go back. |
@@ -33,7 +33,7 @@ Click a link below. Tampermonkey opens an install page; click **Install**. Insta
 | --- | --- |
 | Show archived in *Recently added* | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-recently-added-archived.user.js) |
 | Sort *Archive* and *Locked folder* by date added | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-archive-sort-added.user.js) |
-| Sort search results by date added | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-search-sort-added.user.js) |
+| Sort search results (date added, video length, size, name) | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-search-sort-added.user.js) |
 | See more from this day (photo viewer) | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-asset-more-from-day.user.js) |
 | Search within an album | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-album-search.user.js) |
 | Album filter for search | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-search-album-filter.user.js) |
