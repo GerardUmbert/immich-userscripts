@@ -61,6 +61,7 @@ The choice is never remembered: every page load, and every album you open, start
 - **Recently added:** assets from partners are not listed while archived items are shown. The server refuses to combine them with archived assets.
 - **Recently added:** the Archive/Unarchive action can show the wrong state until you reload, because the script presents archived assets to the app as normal ones.
 - **Archive and Locked folder:** the choice is never remembered either; every page load sorts by date added. The date headings show when items were added, not when they were taken. The dates are in UTC, so an item added just after midnight local time can appear under the previous or next day. The photo viewer still shows the real capture date.
+- **Search album filter:** the picked album is never remembered; every page load and every visit to the search page starts with all albums.
 - **Search:** every result page is loaded up front (up to 40 pages), so big searches take longer to appear, and smart search loses its relevance order while sorted by date added. The choice is never remembered either.
 - **Albums:** the asset count in the album header still counts archived items while they are hidden.
 

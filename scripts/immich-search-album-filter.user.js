@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Immich: album filter for search
 // @description  Adds an Album section to the search filters (next to Library) so any search can be limited to one album.
-// @version      1.1.0
+// @version      1.1.1
 // @updateURL    https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-search-album-filter.user.js
 // @downloadURL  https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-search-album-filter.user.js
 // @include      /^https?:\/\/immich\..*/
@@ -20,8 +20,10 @@
 // copies of Immich's own title and button so it looks the same. Picking an album reloads the
 // page to run the search again.
 //
-// The picked album is kept for the browser tab (sessionStorage), so it stays on while you
-// refine the search, and is dropped when you pick "All albums" or close the tab.
+// The choice is never remembered: every page load starts with "All albums". Picking an album
+// has to reload the page (the results load once), so the choice is handed to that single
+// reload through sessionStorage and then forgotten. It stays on while you refine the search on
+// that page, and is dropped when you leave the search page or reload.
 
 (() => {
   'use strict';
@@ -30,25 +32,27 @@
   const SEARCH_PAGE = /^\/search(\/|$)/;
   const SEARCH_API = /\/api\/search\/(metadata|smart)$/;
 
-  const getAlbum = () => {
+  const takePending = () => {
     try {
-      return sessionStorage.getItem(STORAGE_KEY);
+      const value = sessionStorage.getItem(STORAGE_KEY);
+      sessionStorage.removeItem(STORAGE_KEY);
+      return value;
     } catch {
       return null;
     }
   };
 
-  const setAlbum = (id) => {
+  const setPending = (id) => {
     try {
-      if (id) {
-        sessionStorage.setItem(STORAGE_KEY, id);
-      } else {
-        sessionStorage.removeItem(STORAGE_KEY);
-      }
+      sessionStorage.setItem(STORAGE_KEY, id);
     } catch {
-      // storage blocked: the picker will just not hold its value
+      // storage blocked: the filter will just switch off after the reload
     }
   };
+
+  // the album the searches on this page are limited to, if any
+  let picked = takePending();
+  const getAlbum = () => picked;
 
   // --- request rewriting ---------------------------------------------------
 
@@ -112,7 +116,9 @@
   };
 
   const choose = (id) => {
-    setAlbum(id);
+    if (id) {
+      setPending(id);
+    }
     // the results load once, so reload to run the search with the new filter
     location.reload();
   };
@@ -206,6 +212,10 @@
   };
 
   const sync = () => {
+    if (picked && !SEARCH_PAGE.test(location.pathname)) {
+      // left the search: the next visit starts with all albums again
+      picked = null;
+    }
     const library = SEARCH_PAGE.test(location.pathname) ? document.querySelector(SECTION) : null;
     if (!library || library.parentElement.querySelector(`[${ATTR}]`)) {
       return;
