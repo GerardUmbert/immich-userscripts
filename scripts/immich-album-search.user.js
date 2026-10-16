@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Immich: search within an album
 // @description  Adds a search button to an album's top bar that searches only the assets inside that album.
-// @version      1.1.1
+// @version      1.2.0
 // @updateURL    https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-album-search.user.js
 // @downloadURL  https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-album-search.user.js
 // @include      /^https?:\/\/immich\..*/
@@ -13,12 +13,13 @@
 //
 // How it works: Immich's search accepts an `albumIds` filter, but its search page has no way
 // to set it. The page reads its whole search from the address (/search?query=<json>), so the
-// button opens a small search panel (text, what to match, kind of file) and then opens a
+// button opens a small search panel (text, what to match, kind of file, archived or not) and then opens a
 // search with those terms and `albumIds` set to the current album.
 //
 // "Content" is a normal search (the same as typing it in the search bar); "File name" matches
 // part of the file name, so ".mp4" finds that extension. Leave the text empty to list every
-// file of the chosen kind. The search page shows the album filter as an "albumIds" chip;
+// file of the chosen kind. The search page leaves archived items out unless asked, so "Archived"
+// sets `visibility: archive` to look only at those (there is no way to ask for both at once). The search page shows the album filter as an "albumIds" chip;
 // removing it searches everywhere.
 
 (() => {
@@ -98,6 +99,9 @@
     if (type) {
       terms.type = type;
     }
+    if (form.elements.archive.value) {
+      terms.visibility = form.elements.archive.value;
+    }
     if (text) {
       terms[form.elements.match.value === 'file' ? 'originalFileName' : 'query'] = text;
     }
@@ -147,6 +151,8 @@
       choices('match', [['content', 'Content'], ['file', 'File name']], 'content'),
       caption('Kind of file'),
       choices('type', [['', 'Any'], ['IMAGE', 'Photos'], ['VIDEO', 'Videos'], ['AUDIO', 'Audio'], ['OTHER', 'Other']], ''),
+      caption('Archive'),
+      choices('archive', [['', 'Not archived'], ['archive', 'Archived']], ''),
       submit,
     );
     panel.addEventListener('submit', (event) => {

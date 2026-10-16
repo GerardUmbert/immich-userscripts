@@ -257,6 +257,19 @@ export const anchors = [
     means: 'the Library filters are in #display-options-selection, a fieldset with a title followed by SearchButton pills (the Album section copies them)',
   },
 
+  {
+    scripts: ['album-search'],
+    file: 'server/src/dtos/search.dto.ts',
+    match: /visibility:\s*AssetVisibilitySchema\.optional\(\)/,
+    means: 'the search endpoints accept a visibility filter',
+  },
+  {
+    scripts: ['album-search'],
+    file: 'web/src/routes/(user)/search/[[photos=photos]]/[[assetId=id]]/+page.svelte',
+    match: /visibility: AssetVisibility\.Timeline,\s*\.\.\.searchDto/,
+    means: 'the search page leaves archived items out by default and lets the address override that',
+  },
+
   // --- viewer: see more from this day ----------------------------------------
   {
     scripts: ['more-from-day'],
