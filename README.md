@@ -6,6 +6,7 @@ Tampermonkey userscripts for the Immich web UI. They only change what your brows
 | --- | --- |
 | [immich-recently-added-archived](scripts/immich-recently-added-archived.user.js) | Adds an eye toggle at the right end of the *Recently added* title bar ("Hiding archived" / "Showing archived"). Archived items get Immich's archive icon in the bottom-right corner of the thumbnail. |
 | [immich-archive-sort-added](scripts/immich-archive-sort-added.user.js) | Sorts the *Archive* and *Locked folder* pages by the date items were added to Immich (newest first) instead of the date they were taken. A button in the title bar ("Sorted by date added" / "Sorted by date taken") switches to Immich's own order for that visit. |
+| [immich-search-sort-added](scripts/immich-search-sort-added.user.js) | Sorts search results by the date items were added to Immich (newest first). The search API can't do this, so the script loads all result pages and sorts them itself. A button below the search bar switches back to Immich's own order for that visit. |
 | [immich-albums-hide-archived](scripts/immich-albums-hide-archived.user.js) | Hides archived items inside albums by default. An eye button, crossed out while they are hidden, sits with the action buttons in the album's top bar. |
 
 ## Why these exist
@@ -29,6 +30,7 @@ Click a link below. Tampermonkey opens an install page; click **Install**. Insta
 | --- | --- |
 | Show archived in *Recently added* | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-recently-added-archived.user.js) |
 | Sort *Archive* and *Locked folder* by date added | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-archive-sort-added.user.js) |
+| Sort search results by date added | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-search-sort-added.user.js) |
 | Hide archived in albums | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-albums-hide-archived.user.js) |
 
 The links point at the raw `.user.js` files on `main`. Tampermonkey recognises that file type and shows its install page instead of the code. Each script also declares the same address as its update source, so Tampermonkey picks up new versions by itself (it checks about once a day; **Utilities > Check for userscript updates** in the dashboard does it now).
@@ -53,6 +55,7 @@ The choice is never remembered: every page load, and every album you open, start
 - **Recently added:** assets from partners are not listed while archived items are shown. The server refuses to combine them with archived assets.
 - **Recently added:** the Archive/Unarchive action can show the wrong state until you reload, because the script presents archived assets to the app as normal ones.
 - **Archive and Locked folder:** the choice is never remembered either; every page load sorts by date added. The date headings show when items were added, not when they were taken. The dates are in UTC, so an item added just after midnight local time can appear under the previous or next day. The photo viewer still shows the real capture date.
+- **Search:** every result page is loaded up front (up to 40 pages), so big searches take longer to appear, and smart search loses its relevance order while sorted by date added. The choice is never remembered either.
 - **Albums:** the asset count in the album header still counts archived items while they are hidden.
 
 ## How they work

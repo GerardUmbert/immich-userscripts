@@ -130,6 +130,44 @@ export const anchors = [
     means: 'the web app drops assets whose date is outside the month requested (why the dates must match the server months)',
   },
 
+  // --- search: sort by date added --------------------------------------------
+  {
+    scripts: ['search-sort'],
+    file: SDK,
+    match: /baseUrl:\s*"\/api"/,
+    means: 'the web app calls the API under /api',
+  },
+  {
+    scripts: ['search-sort'],
+    file: SDK,
+    absent: /defaults[^=]*=\s*\{[^}]*\bfetch\s*:/,
+    means: 'the SDK uses the global fetch (a custom fetch would bypass the script)',
+  },
+  {
+    scripts: ['search-sort'],
+    file: 'server/src/controllers/search.controller.ts',
+    match: /@Controller\('search'\)[\s\S]*@Post\('metadata'\)[\s\S]*@Post\('smart'\)/,
+    means: 'the server serves POST /search/metadata and POST /search/smart',
+  },
+  {
+    scripts: ['search-sort'],
+    file: 'server/src/dtos/search.dto.ts',
+    match: /items:\s*z\.array\(AssetResponseSchema\)[\s\S]*nextPage:\s*z\.string\(\)\.nullable\(\)[\s\S]*nextCursor:/,
+    means: 'search results are assets.items[] with nextPage / nextCursor tokens for the following pages',
+  },
+  {
+    scripts: ['search-sort'],
+    file: 'server/src/dtos/asset-response.dto.ts',
+    match: /createdAt:[\s\S]{0,200}uploaded to Immich/,
+    means: 'each search result carries createdAt, the upload date',
+  },
+  {
+    scripts: ['search-sort'],
+    file: 'web/src/routes/(user)/search/[[photos=photos]]/[[assetId=id]]/+page.svelte',
+    match: /nextPage = Number\(assets\.nextPage\) \|\| 0;/,
+    means: 'the search page stops loading when nextPage is empty (the script returns every result as one page)',
+  },
+
   // --- recently added: show archived -----------------------------------------
   {
     scripts: ['recently-added'],
