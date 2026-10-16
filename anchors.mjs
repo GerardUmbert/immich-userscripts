@@ -168,6 +168,19 @@ export const anchors = [
     means: 'the search page stops loading when nextPage is empty (the script returns every result as one page)',
   },
 
+  {
+    scripts: ['search-sort'],
+    file: 'web/src/lib/components/shared-components/ControlAppBar.svelte',
+    match: /<div class="absolute top-0 w-full[^"]*" id="control-bar">/,
+    means: 'the top bar has id "control-bar" and is absolutely positioned (the button is placed inside it)',
+  },
+  {
+    scripts: ['search-sort'],
+    file: 'web/src/routes/(user)/search/[[photos=photos]]/[[assetId=id]]/+page.svelte',
+    match: /<ControlAppBar onClose=\{\(\) => goto\(previousRoute\)\} backIcon=\{mdiArrowLeft\}>[\s\S]*<SearchBar/,
+    means: 'the search page shows its search field in a ControlAppBar',
+  },
+
   // --- recently added: show archived -----------------------------------------
   {
     scripts: ['recently-added'],

@@ -23,7 +23,7 @@
 // and the relevance order of smart search is lost while sorted by date added. Loading stops
 // after MAX_PAGES pages as a safety limit.
 //
-// The default is date added. The button switches to Immich's own order for that visit; it is
+// The default is date added. The button, in the top bar next to the search field, switches to Immich's own order for that visit; it is
 // never remembered, so every page load starts with date added again.
 
 (() => {
@@ -161,12 +161,13 @@
   const createButton = () => {
     const el = document.createElement('button');
     el.type = 'button';
-    // the search page has no title bar of its own, so the button floats below the search bar
+    // the search bar is centred in the top bar, so the button sits at the bar's right end
     el.style.cssText = [
-      'position:fixed',
-      'top:76px',
-      'right:16px',
-      'z-index:50',
+      'position:absolute',
+      'top:50%',
+      'right:24px',
+      'transform:translateY(-50%)',
+      'z-index:1',
       'display:inline-flex',
       'align-items:center',
       'gap:8px',
@@ -214,12 +215,16 @@
       button = undefined;
       return;
     }
-    if (!document.body) {
+    // the top bar ("control-bar") is absolutely positioned, so it anchors the button
+    const bar = document.getElementById('control-bar');
+    if (!bar) {
+      button?.remove();
+      button = undefined;
       return;
     }
-    if (!button || !document.body.contains(button)) {
+    if (!button || !bar.contains(button)) {
       button = createButton();
-      document.body.append(button);
+      bar.append(button);
     }
     render();
   };
