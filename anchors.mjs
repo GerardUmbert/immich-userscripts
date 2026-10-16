@@ -181,6 +181,26 @@ export const anchors = [
     means: 'the search page shows its search field in a ControlAppBar',
   },
 
+  // --- viewer: see more from this day ----------------------------------------
+  {
+    scripts: ['more-from-day'],
+    file: 'web/src/lib/components/asset-viewer/DetailPanelDate.svelte',
+    match: /data-testid="detail-panel-edit-date-button"/,
+    means: 'the info panel date is a button with data-testid "detail-panel-edit-date-button" (the link is added after it)',
+  },
+  {
+    scripts: ['more-from-day'],
+    file: 'server/src/dtos/asset-response.dto.ts',
+    match: /fileCreatedAt:[\s\S]*localDateTime:|localDateTime:[\s\S]*fileCreatedAt:/,
+    means: 'GET /assets/:id returns fileCreatedAt and localDateTime (their difference is the time zone offset)',
+  },
+  {
+    scripts: ['more-from-day'],
+    file: 'server/src/utils/database.ts',
+    match: /asset\.fileCreatedAt', '>=', options\.takenAfter!\)[\s\S]*asset\.fileCreatedAt', '<=', options\.takenBefore!\)|asset\.fileCreatedAt', '<=', options\.takenBefore!\)[\s\S]*asset\.fileCreatedAt', '>=', options\.takenAfter!\)/,
+    means: 'takenAfter / takenBefore filter on the capture instant (fileCreatedAt)',
+  },
+
   // --- recently added: show archived -----------------------------------------
   {
     scripts: ['recently-added'],

@@ -7,6 +7,7 @@ Tampermonkey userscripts for the Immich web UI. They only change what your brows
 | [immich-recently-added-archived](scripts/immich-recently-added-archived.user.js) | Adds an eye toggle at the right end of the *Recently added* title bar ("Hiding archived" / "Showing archived"). Archived items get Immich's archive icon in the bottom-right corner of the thumbnail. |
 | [immich-archive-sort-added](scripts/immich-archive-sort-added.user.js) | Sorts the *Archive* and *Locked folder* pages by the date items were added to Immich (newest first) instead of the date they were taken. A button in the title bar ("Sorted by date added" / "Sorted by date taken") switches to Immich's own order for that visit. |
 | [immich-search-sort-added](scripts/immich-search-sort-added.user.js) | Sorts search results by the date items were added to Immich (newest first). The search API can't do this, so the script loads all result pages and sorts them itself. A button below the search bar switches back to Immich's own order for that visit. |
+| [immich-asset-more-from-day](scripts/immich-asset-more-from-day.user.js) | Adds a "See more from this day" link under the date in the photo viewer's info panel. It opens a search for everything taken that day. |
 | [immich-albums-hide-archived](scripts/immich-albums-hide-archived.user.js) | Hides archived items inside albums by default. An eye button, crossed out while they are hidden, sits with the action buttons in the album's top bar. |
 
 ## Why these exist
@@ -31,6 +32,7 @@ Click a link below. Tampermonkey opens an install page; click **Install**. Insta
 | Show archived in *Recently added* | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-recently-added-archived.user.js) |
 | Sort *Archive* and *Locked folder* by date added | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-archive-sort-added.user.js) |
 | Sort search results by date added | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-search-sort-added.user.js) |
+| See more from this day (photo viewer) | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-asset-more-from-day.user.js) |
 | Hide archived in albums | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-albums-hide-archived.user.js) |
 
 The links point at the raw `.user.js` files on `main`. Tampermonkey recognises that file type and shows its install page instead of the code. Each script also declares the same address as its update source, so Tampermonkey picks up new versions by itself (it checks about once a day; **Utilities > Check for userscript updates** in the dashboard does it now).
