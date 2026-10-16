@@ -219,6 +219,44 @@ export const anchors = [
     means: 'the normal album view has a top bar with trailing action buttons and no leading title',
   },
 
+  // --- search: album filter --------------------------------------------------
+  {
+    scripts: ['search-album-filter'],
+    file: SDK,
+    absent: /defaults[^=]*=\s*\{[^}]*\bfetch\s*:/,
+    means: 'the SDK uses the global fetch (a custom fetch would bypass the script)',
+  },
+  {
+    scripts: ['search-album-filter'],
+    file: SDK,
+    match: /`\/albums\$\{QS\.query/,
+    means: 'GET /albums lists the albums',
+  },
+  {
+    scripts: ['search-album-filter'],
+    file: 'server/src/controllers/search.controller.ts',
+    match: /@Controller\('search'\)[\s\S]*@Post\('metadata'\)[\s\S]*@Post\('smart'\)/,
+    means: 'the server serves POST /search/metadata and POST /search/smart',
+  },
+  {
+    scripts: ['search-album-filter'],
+    file: 'server/src/dtos/search.dto.ts',
+    match: /albumIds:\s*z\.array\(z\.uuidv4\(\)\)\.optional\(\)/,
+    means: 'the search endpoints accept an albumIds filter',
+  },
+  {
+    scripts: ['search-album-filter'],
+    file: 'server/src/dtos/album.dto.ts',
+    match: /albumName:\s*z\.string\(\)\.describe\('Album name'\)/,
+    means: 'albums have an albumName',
+  },
+  {
+    scripts: ['search-album-filter'],
+    file: 'web/src/lib/components/shared-components/ControlAppBar.svelte',
+    match: /<div class="absolute top-0 w-full[^"]*" id="control-bar">/,
+    means: 'the top bar has id "control-bar" and is absolutely positioned (the picker is placed inside it)',
+  },
+
   // --- viewer: see more from this day ----------------------------------------
   {
     scripts: ['more-from-day'],
