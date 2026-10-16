@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Immich: album filter for search
 // @description  Adds an Album section to the search filters (next to Library) so any search can be limited to one album.
-// @version      1.1.1
+// @version      1.1.2
 // @updateURL    https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-search-album-filter.user.js
 // @downloadURL  https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-search-album-filter.user.js
 // @include      /^https?:\/\/immich\..*/
@@ -23,7 +23,9 @@
 // The choice is never remembered: every page load starts with "All albums". Picking an album
 // has to reload the page (the results load once), so the choice is handed to that single
 // reload through sessionStorage and then forgotten. It stays on while you refine the search on
-// that page, and is dropped when you leave the search page or reload.
+// that page, and is dropped when you leave the search page or reload. The section also shows
+// up in the filter panel on other pages (the search bar is everywhere); picking an album there
+// applies to the search you run next.
 
 (() => {
   'use strict';
@@ -116,6 +118,12 @@
   };
 
   const choose = (id) => {
+    if (!SEARCH_PAGE.test(location.pathname)) {
+      // no results on screen yet: just remember it for the search about to be run
+      picked = id || null;
+      document.querySelector(`[${ATTR}]`)?.remove(); // rebuilt with the new choice on the next tick
+      return;
+    }
     if (id) {
       setPending(id);
     }
@@ -211,12 +219,18 @@
     return section;
   };
 
+  let wasOnSearch = SEARCH_PAGE.test(location.pathname);
+
   const sync = () => {
-    if (picked && !SEARCH_PAGE.test(location.pathname)) {
-      // left the search: the next visit starts with all albums again
+    const onSearch = SEARCH_PAGE.test(location.pathname);
+    if (wasOnSearch && !onSearch) {
+      // left the search: the next one starts with all albums again
       picked = null;
     }
-    const library = SEARCH_PAGE.test(location.pathname) ? document.querySelector(SECTION) : null;
+    wasOnSearch = onSearch;
+
+    // the filter panel belongs to the search bar, which is on every page
+    const library = document.querySelector(SECTION);
     if (!library || library.parentElement.querySelector(`[${ATTR}]`)) {
       return;
     }
