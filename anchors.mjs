@@ -252,9 +252,9 @@ export const anchors = [
   },
   {
     scripts: ['search-album-filter'],
-    file: 'web/src/lib/components/shared-components/ControlAppBar.svelte',
-    match: /<div class="absolute top-0 w-full[^"]*" id="control-bar">/,
-    means: 'the top bar has id "control-bar" and is absolutely positioned (the picker is placed inside it)',
+    file: 'web/src/lib/components/shared-components/search-bar/SearchDisplaySection.svelte',
+    match: /id="display-options-selection"[\s\S]*<fieldset>[\s\S]*<Text[^>]*>\{\$t\('library'\)\}<\/Text>[\s\S]*<SearchButton/,
+    means: 'the Library filters are in #display-options-selection, a fieldset with a title followed by SearchButton pills (the Album section copies them)',
   },
 
   // --- viewer: see more from this day ----------------------------------------

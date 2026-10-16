@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Immich: album filter for search
-// @description  Adds an album picker to the search page's top bar so any search can be limited to one album.
-// @version      1.0.0
+// @description  Adds an Album section to the search filters (next to Library) so any search can be limited to one album.
+// @version      1.1.0
 // @updateURL    https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-search-album-filter.user.js
 // @downloadURL  https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-search-album-filter.user.js
 // @include      /^https?:\/\/immich\..*/
@@ -15,8 +15,10 @@
 // How it works: the search API takes an `albumIds` filter, but Immich's filter panel has no
 // album section, and the panel rebuilds the whole search from its own state, so anything added
 // to the address is lost on the next search. So the choice is kept by the script instead: it
-// adds `albumIds` to every search request the page sends while an album is picked. The picker
-// lists every album you can see, and picking one reloads the page to run the search again.
+// adds `albumIds` to every search request the page sends while an album is picked. The
+// "Album" section is added to the filter panel's advanced filters, right below Library, using
+// copies of Immich's own title and button so it looks the same. Picking an album reloads the
+// page to run the search again.
 //
 // The picked album is kept for the browser tab (sessionStorage), so it stays on while you
 // refine the search, and is dropped when you pick "All albums" or close the tab.
@@ -82,9 +84,11 @@
     return originalFetch.call(this, input, init);
   };
 
-  // --- album picker in the top bar -----------------------------------------
+  // --- "Album" section in the advanced filters ----------------------------
 
-  let picker;
+  const SECTION = '#display-options-selection';
+  const ATTR = 'data-userscript-album-filter';
+
   let albums; // [{ id, albumName }] once loaded
   let loading = false;
 
@@ -107,65 +111,115 @@
     }
   };
 
-  const fillPicker = () => {
-    const current = getAlbum();
-    const options = [new Option('All albums', '')];
-    for (const { id, albumName } of albums) {
-      options.push(new Option(albumName, id));
-    }
-    picker.replaceChildren(...options);
-    picker.value = albums.some(({ id }) => id === current) ? current : '';
-    picker.style.borderColor = picker.value ? 'currentColor' : 'rgba(128,128,128,.4)';
+  const choose = (id) => {
+    setAlbum(id);
+    // the results load once, so reload to run the search with the new filter
+    location.reload();
   };
 
-  const createPicker = () => {
-    const el = document.createElement('select');
-    el.title = 'Only search inside this album';
-    el.setAttribute('aria-label', 'Album filter');
-    // sits at the left of the top bar, clear of the centred search field
-    el.style.cssText = [
-      'position:absolute',
-      'top:50%',
-      'left:72px',
-      'transform:translateY(-50%)',
-      'z-index:1',
-      'max-width:200px',
-      'padding:6px 10px',
-      'border:1px solid rgba(128,128,128,.4)',
-      'border-radius:9999px',
-      'background:rgba(128,128,128,.18)',
+  // One row of the list; styled by hand since it has no counterpart to copy.
+  const createRow = (label, id, selected) => {
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.textContent = label;
+    row.style.cssText = [
+      'display:block',
+      'width:100%',
+      'padding:6px 12px',
+      'border:0',
+      'border-radius:8px',
+      'background:' + (selected ? 'rgba(128,128,128,.25)' : 'transparent'),
       'color:inherit',
       'font:inherit',
       'font-size:14px',
+      'text-align:start',
       'cursor:pointer',
     ].join(';');
-    el.addEventListener('change', () => {
-      setAlbum(el.value);
-      // the results load once, so reload to run the search with the new filter
-      location.reload();
+    row.addEventListener('mouseenter', () => (row.style.background = 'rgba(128,128,128,.18)'));
+    row.addEventListener('mouseleave', () => (row.style.background = selected ? 'rgba(128,128,128,.25)' : 'transparent'));
+    row.addEventListener('click', () => choose(id));
+    return row;
+  };
+
+  const createSection = (library) => {
+    const current = getAlbum();
+    const name = albums.find(({ id }) => id === current)?.albumName;
+
+    const section = document.createElement('div');
+    section.setAttribute(ATTR, '');
+
+    // copy Immich's own "Library" title and filter button, so the section matches
+    const title = library.querySelector('fieldset > :first-child').cloneNode(true);
+    title.textContent = 'Album';
+    const buttons = [...library.querySelectorAll('fieldset button')];
+    // prefer a button that is not switched on (those carry a check icon)
+    const template = buttons.find((button) => !button.querySelector('svg')) ?? buttons[0];
+
+    const pill = template.cloneNode(true);
+    // the copy comes with Immich's inactive look; borrow the primary colour when an album is set
+    pill.replaceChildren(name ?? 'All albums');
+    pill.type = 'button';
+    pill.title = 'Only search inside one album';
+    if (name) {
+      pill.style.color = 'rgb(var(--immich-primary, 66 80 175))';
+      pill.style.borderColor = 'rgb(var(--immich-primary, 66 80 175))';
+    }
+
+    const list = document.createElement('div');
+    list.hidden = true;
+    list.style.cssText = 'margin-top:8px;padding:8px;border:1px solid rgba(128,128,128,.35);border-radius:16px';
+
+    const filter = document.createElement('input');
+    filter.type = 'text';
+    filter.placeholder = 'Find an album';
+    filter.autocomplete = 'off';
+    filter.style.cssText =
+      'box-sizing:border-box;width:100%;margin-bottom:6px;padding:6px 12px;border:1px solid rgba(128,128,128,.5);border-radius:9999px;background:transparent;color:inherit;font:inherit;font-size:14px;outline:none';
+
+    const rows = document.createElement('div');
+    rows.style.cssText = 'max-height:220px;overflow-y:auto';
+
+    const renderRows = () => {
+      const needle = filter.value.trim().toLowerCase();
+      const matching = albums.filter(({ albumName }) => albumName.toLowerCase().includes(needle));
+      rows.replaceChildren(
+        ...(needle ? [] : [createRow('All albums', '', !current)]),
+        ...matching.map(({ id, albumName }) => createRow(albumName, id, id === current)),
+      );
+    };
+    filter.addEventListener('input', renderRows);
+    renderRows();
+    list.append(filter, rows);
+
+    pill.addEventListener('click', () => {
+      list.hidden = !list.hidden;
+      if (!list.hidden) {
+        filter.focus();
+      }
     });
-    return el;
+
+    const row = document.createElement('div');
+    row.className = template.parentElement.className;
+    row.append(pill);
+    section.append(title, row, list);
+    return section;
   };
 
   const sync = () => {
-    // the top bar ("control-bar") is absolutely positioned, so it anchors the picker
-    const bar = SEARCH_PAGE.test(location.pathname) ? document.getElementById('control-bar') : null;
-    if (!bar) {
-      picker?.remove();
-      picker = undefined;
+    const library = SEARCH_PAGE.test(location.pathname) ? document.querySelector(SECTION) : null;
+    if (!library || library.parentElement.querySelector(`[${ATTR}]`)) {
       return;
     }
     if (!albums) {
       void loadAlbums();
       return;
     }
-    if (!picker || !bar.contains(picker)) {
-      picker = createPicker();
-      bar.append(picker);
-      fillPicker();
+    // the filter panel is rebuilt each time it opens, so the section is added again each time
+    if (library.querySelector('fieldset > :first-child') && library.querySelector('fieldset button')) {
+      library.after(createSection(library));
     }
   };
 
-  // Immich is a single-page app, so watch for navigation instead of page loads.
-  setInterval(sync, 500);
+  // Immich is a single-page app, so watch for navigation and re-renders instead of page loads.
+  setInterval(sync, 300);
 })();
