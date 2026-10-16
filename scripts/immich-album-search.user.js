@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Immich: search within an album
 // @description  Adds a search button to an album's top bar that searches only the assets inside that album.
-// @version      1.1.0
+// @version      1.1.1
 // @updateURL    https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-album-search.user.js
 // @downloadURL  https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-album-search.user.js
 // @include      /^https?:\/\/immich\..*/
