@@ -181,6 +181,44 @@ export const anchors = [
     means: 'the search page shows its search field in a ControlAppBar',
   },
 
+  // --- album: search within it -----------------------------------------------
+  {
+    scripts: ['album-search'],
+    file: 'server/src/dtos/search.dto.ts',
+    match: /albumIds:\s*z\.array\(z\.uuidv4\(\)\)\.optional\(\)/,
+    means: 'the search endpoints accept an albumIds filter',
+  },
+  {
+    scripts: ['album-search'],
+    file: 'server/src/dtos/search.dto.ts',
+    match: /type:\s*AssetTypeSchema\.optional\(\)/,
+    means: 'the search endpoints accept a type filter',
+  },
+  {
+    scripts: ['album-search'],
+    file: 'server/src/enum.ts',
+    match: /Image = 'IMAGE',\s*Video = 'VIDEO',\s*Audio = 'AUDIO',\s*Other = 'OTHER'/,
+    means: "asset types are the strings 'IMAGE', 'VIDEO', 'AUDIO' and 'OTHER'",
+  },
+  {
+    scripts: ['album-search'],
+    file: 'web/src/routes/(user)/search/[[photos=photos]]/[[assetId=id]]/+page.svelte',
+    match: /searchQuery \? JSON\.parse\(searchQuery\) : \{\}[\s\S]*\.\.\.terms,/,
+    means: 'the search page takes its whole search from the query address and passes every key on to the API',
+  },
+  {
+    scripts: ['album-search'],
+    file: 'web/src/lib/components/shared-components/ControlAppBar.svelte',
+    match: /id="control-bar"[\s\S]*<ControlBarOverflow>[\s\S]*\{@render trailing\(\)\}/,
+    means: 'the top bar has id "control-bar" and puts the trailing action buttons in ControlBarOverflow (the button is added there)',
+  },
+  {
+    scripts: ['album-search'],
+    file: ALBUM_PAGE,
+    match: /<ControlAppBar backIcon=\{mdiArrowLeft\}[\s\S]*\{#snippet trailing\(\)\}[\s\S]*<ActionButton action=\{Actions\.Share\} \/>/,
+    means: 'the normal album view has a top bar with trailing action buttons and no leading title',
+  },
+
   // --- viewer: see more from this day ----------------------------------------
   {
     scripts: ['more-from-day'],
