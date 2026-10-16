@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Immich: sort search results by date added
 // @description  Orders the search results by upload date (newest first), with a button to switch back to Immich's own order.
-// @version      1.0.0
+// @version      1.0.1
 // @updateURL    https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-search-sort-added.user.js
 // @downloadURL  https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-search-sort-added.user.js
 // @include      /^https?:\/\/immich\..*/
