@@ -9,7 +9,7 @@
 //
 // When a script starts relying on something new, add an anchor for it here.
 
-export const checkedAgainst = 'v3.3.3';
+export const checkedAgainst = 'v3.3.5';
 
 const RECENTLY_ADDED = 'web/src/routes/(user)/recently-added/[[photos=photos]]/[[assetId=id]]/+page.svelte';
 const ALBUM_PAGE = 'web/src/routes/(user)/albums/[albumId=id]/[[photos=photos]]/[[assetId=id]]/+page.svelte';
