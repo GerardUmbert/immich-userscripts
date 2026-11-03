@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Immich: rotate video
 // @description  Adds rotate-left and rotate-right buttons to the video viewer's top bar. They turn the video picture itself by 90 degrees, the player controls stay upright.
-// @version      1.0.0
+// @version      1.0.1
 // @updateURL    https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-video-rotate.user.js
 // @downloadURL  https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-video-rotate.user.js
 // @include      /^https?:\/\/immich\..*/
