@@ -317,9 +317,12 @@
       button = undefined;
       return;
     }
-    // the top bar ("control-bar") is absolutely positioned, so it anchors the control
+    // the top bar ("control-bar") is absolutely positioned, so it anchors the control.
+    // While items are selected the page swaps it for a bar of action buttons on the right,
+    // which this control would sit on top of; only the bar with the search field gets it.
     const bar = document.getElementById('control-bar');
-    if (!bar) {
+    if (!bar || !bar.querySelector('input')) {
+      closeMenu();
       button?.remove();
       button = undefined;
       return;
