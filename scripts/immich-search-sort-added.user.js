@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Immich: sort search results
 // @description  Sorts the search results by date added (the default), video length, file size or name, with a sort menu in the top bar.
-// @version      1.1.0
+// @version      1.1.1
 // @updateURL    https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-search-sort-added.user.js
 // @downloadURL  https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-search-sort-added.user.js
 // @include      /^https?:\/\/immich\..*/
