@@ -419,7 +419,7 @@ export const anchors = [
   {
     scripts: ['search-sort'],
     file: 'web/src/lib/components/shared-components/search-bar/SearchBar.svelte',
-    match: /<input/,
+    match: /<input/,
     means: 'the search bar has a text input, which is how the sort button tells it apart from the selection bar (that one has action buttons on the right)',
   },
 ];
