@@ -13,7 +13,8 @@
 //
 // How it works: the viewer plays the file in a <video> (or <hls-video>) element, and the
 // controls are separate elements next to it. The script puts a CSS rotation on that video
-// element only, scaled down so the turned picture still fits the screen. The file on the
+// element only, resized so the turned picture fills the player the other way round (a
+// portrait video turned sideways becomes as wide as the player allows). The file on the
 // server is not changed, and the rotation only exists in this browser. It is remembered per
 // video, so reopening the same video shows it turned again.
 
@@ -59,18 +60,28 @@
       return;
     }
     let scale = 1;
+    let shift = '';
+    // the element is only as wide as the picture (it has a height but no width of its own),
+    // so the room to grow into is the player around it, not the element's own box
+    const area = (video.closest('media-controller') ?? video.parentElement).getBoundingClientRect();
     const box = video.getBoundingClientRect();
-    const vw = video.videoWidth || video.clientWidth;
-    const vh = video.videoHeight || video.clientHeight;
-    // the picture inside the element is fitted with "contain"; find its on-screen size
-    // before turning, then shrink so the turned picture fits the same box
-    if (degrees % 180 !== 0 && box.width && box.height && vw && vh) {
-      const fit = Math.min(box.width / vw, box.height / vh);
-      const shownW = vw * fit;
-      const shownH = vh * fit;
-      scale = Math.min(box.width / shownH, box.height / shownW);
+    if (degrees % 180 !== 0 && box.width && box.height && area.width && area.height) {
+      // swap width and height: the turned picture has to fit the player the other way round
+      let shownW = box.width;
+      let shownH = box.height;
+      if (video.videoWidth && video.videoHeight) {
+        // the picture is fitted with "contain" inside the element, which can leave bars
+        const fit = Math.min(box.width / video.videoWidth, box.height / video.videoHeight);
+        shownW = video.videoWidth * fit;
+        shownH = video.videoHeight * fit;
+      }
+      scale = Math.min(area.width / shownH, area.height / shownW);
+      // turn around the middle of the player, not the middle of the narrower element
+      const dx = area.left + area.width / 2 - (box.left + box.width / 2);
+      const dy = area.top + area.height / 2 - (box.top + box.height / 2);
+      shift = `translate(${dx}px, ${dy}px) `;
     }
-    video.style.transform = `rotate(${degrees}deg) scale(${scale})`;
+    video.style.transform = `${shift}rotate(${degrees}deg) scale(${scale})`;
   };
 
   const rotate = (step) => {
