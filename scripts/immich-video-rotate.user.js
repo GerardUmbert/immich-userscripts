@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Immich: rotate video
 // @description  Adds rotate-left and rotate-right buttons to the video viewer's top bar. They turn the video picture itself by 90 degrees, the player controls stay upright.
-// @version      1.0.1
+// @version      1.0.2
 // @updateURL    https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-video-rotate.user.js
 // @downloadURL  https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-video-rotate.user.js
 // @include      /^https?:\/\/immich\..*/
@@ -13,8 +13,8 @@
 //
 // How it works: the viewer plays the file in a <video> (or <hls-video>) element, and the
 // controls are separate elements next to it. The script puts a CSS rotation on that video
-// element only, resized so the turned picture fills the player the other way round (a
-// portrait video turned sideways becomes as wide as the player allows). The file on the
+// element, and swaps the aspect ratio of the player around it (Immich shapes the player like
+// the video), so a portrait video turned sideways gets a wide player and wide controls. The file on the
 // server is not changed, and the rotation only exists in this browser. It is remembered per
 // video, so reopening the same video shows it turned again.
 
@@ -54,19 +54,25 @@
   const currentId = () => location.pathname.match(ASSET_PATH)?.[1];
 
   const apply = (video, degrees) => {
-    // measured from the unturned size, so clear any earlier rotation first
+    // the player is measured from its unturned size, so clear any earlier rotation first
+    const player = video.closest('media-controller');
     video.style.transform = '';
+    player?.style.removeProperty('aspect-ratio');
     if (!degrees) {
       return;
     }
+    const sideways = degrees % 180 !== 0;
+    if (sideways && player && video.videoWidth && video.videoHeight) {
+      // Immich sizes the player to the video's own shape, so a portrait video gets a narrow
+      // player. Swap its shape too, so the player and its controls become as wide as the
+      // turned picture.
+      player.style.setProperty('aspect-ratio', `${video.videoHeight} / ${video.videoWidth}`, 'important');
+    }
+    const area = (player ?? video.parentElement).getBoundingClientRect();
+    const box = video.getBoundingClientRect();
     let scale = 1;
     let shift = '';
-    // the element is only as wide as the picture (it has a height but no width of its own),
-    // so the room to grow into is the player around it, not the element's own box
-    const area = (video.closest('media-controller') ?? video.parentElement).getBoundingClientRect();
-    const box = video.getBoundingClientRect();
-    if (degrees % 180 !== 0 && box.width && box.height && area.width && area.height) {
-      // swap width and height: the turned picture has to fit the player the other way round
+    if (sideways && box.width && box.height && area.width && area.height) {
       let shownW = box.width;
       let shownH = box.height;
       if (video.videoWidth && video.videoHeight) {
@@ -75,8 +81,9 @@
         shownW = video.videoWidth * fit;
         shownH = video.videoHeight * fit;
       }
+      // swap width and height: the turned picture has to fit the player the other way round
       scale = Math.min(area.width / shownH, area.height / shownW);
-      // turn around the middle of the player, not the middle of the narrower element
+      // turn around the middle of the player
       const dx = area.left + area.width / 2 - (box.left + box.width / 2);
       const dy = area.top + area.height / 2 - (box.top + box.height / 2);
       shift = `translate(${dx}px, ${dy}px) `;

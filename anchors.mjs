@@ -422,4 +422,10 @@ export const anchors = [
     match: /<input/,
     means: 'the search bar has a text input, which is how the sort button tells it apart from the selection bar (that one has action buttons on the right)',
   },
+  {
+    scripts: ['video-rotate'],
+    file: 'web/src/lib/components/asset-viewer/VideoNativeViewer.svelte',
+    match: /<media-controller[\s\S]*?style:aspect-ratio=\{aspectRatio\}/,
+    means: 'the player (media-controller) is shaped by an aspect-ratio style that the script swaps when the video is turned sideways',
+  },
 ];
