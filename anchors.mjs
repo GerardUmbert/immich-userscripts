@@ -402,4 +402,18 @@ export const anchors = [
     match: /albumId:\s*z\.uuidv4\(\)\.optional\(\)/,
     means: 'the timeline endpoints take albumId as a query parameter',
   },
+
+  // --- video rotate ----------------------------------------------------------
+  {
+    scripts: ['video-rotate'],
+    file: 'web/src/lib/components/asset-viewer/VideoNativeViewer.svelte',
+    match: /<video\s[^>]*src=\{assetFileUrl\}[\s\S]*class="h-full object-contain"/,
+    means: 'the video viewer plays the file in a plain <video> element that the script can transform (hls-video is the streaming variant)',
+  },
+  {
+    scripts: ['video-rotate'],
+    file: 'web/src/lib/components/asset-viewer/AssetViewerNavBar.svelte',
+    match: /data-testid="asset-viewer-navbar-actions"/,
+    means: 'the viewer top bar has an actions container the rotate buttons are added to',
+  },
 ];
