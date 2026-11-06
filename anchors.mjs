@@ -417,6 +417,12 @@ export const anchors = [
     means: 'the viewer top bar has an actions container the rotate buttons are added to',
   },
   {
+    scripts: ['video-volume-keys'],
+    file: 'web/src/lib/components/asset-viewer/VideoNativeViewer.svelte',
+    match: /<video\s[^>]*src=\{assetFileUrl\}/,
+    means: 'the video viewer plays the file in a plain <video> element whose volume the script can set (hls-video is the streaming variant)',
+  },
+  {
     scripts: ['search-sort'],
     file: 'web/src/lib/components/shared-components/search-bar/SearchBar.svelte',
     match: /<input/,
