@@ -73,7 +73,7 @@ The choice is never remembered: every page load, and every album you open, start
 - **Search:** every result page is loaded up front (up to 40 pages), so big searches take longer to appear, and smart search loses its relevance order while sorted by date added. The choice is never remembered either.
 - **Video rotate:** only the picture in your browser is turned, not the file, so other devices, shares and other users still see the original. The turn is remembered per video in the browser's local storage (clearing site data forgets it). 360° panorama videos use a different player and are not rotated.
 - **Albums:** the asset count in the album header still counts archived items while they are hidden.
-- **Group by person:** it is a panel of its own, so opening a photo from it loads Immich's viewer afresh (archived items are hidden again there, and the viewer's next and previous follow the album's order, not the group). Every photo of the album is loaded up front (up to 40,000), and people you have hidden in Immich are skipped.
+- **Group by person:** it is a panel of its own. Opening a photo closes it, and the viewer's next and previous follow the album's order, not the group. Every photo of the album is loaded up front (up to 40,000), and people you have hidden in Immich are skipped.
 
 ## How they work
 

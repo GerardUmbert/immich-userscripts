@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Immich: group an album by person
 // @description  Adds a button to an album's top bar that shows the album grouped by the people in it: a section per person with their photos.
-// @version      1.0.0
+// @version      1.0.1
 // @updateURL    https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-album-group-by-person.user.js
 // @downloadURL  https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-album-group-by-person.user.js
 // @include      /^https?:\/\/immich\..*/
@@ -16,7 +16,8 @@
 // the album (the search accepts an `albumIds` filter and `withPeople`, which adds the
 // recognised people to each result), groups the results by person, and draws a section for each
 // one: the person's face, name and photo count, then their thumbnails. A photo with several
-// people appears in each of their sections. Clicking a thumbnail opens it in Immich's viewer.
+// people appears in each of their sections. Clicking a thumbnail closes the panel and opens the
+// photo in Immich's viewer.
 //
 // Sections: named people by photo count (most first), then one "Unnamed people" section for
 // faces you have not named yet, then "No person" for photos without a recognised person.
@@ -169,6 +170,13 @@
       const link = el('a', 'position:relative;display:block;aspect-ratio:1;overflow:hidden;border-radius:8px;background:rgba(128,128,128,.25)');
       link.href = `/albums/${id}/photos/${asset.id}`;
       link.title = asset.originalFileName ?? '';
+      // Immich's router follows the link by itself; the panel only has to get out of the way.
+      // A modified click (new tab or window) leaves the panel open.
+      link.addEventListener('click', (event) => {
+        if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
+          setTimeout(closePanel, 0);
+        }
+      });
       const image = el('img', 'width:100%;height:100%;object-fit:cover;display:block');
       image.src = `/api/assets/${asset.id}/thumbnail?size=thumbnail`;
       image.alt = asset.originalFileName ?? '';
