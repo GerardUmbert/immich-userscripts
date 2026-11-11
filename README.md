@@ -14,6 +14,7 @@ Tampermonkey userscripts for the Immich web UI. They only change what your brows
 | [immich-album-search](scripts/immich-album-search.user.js) | Adds a magnifier button to an album's top bar that searches only inside that album. A small panel asks for the text, whether to match content or file names (`.mp4` finds an extension), the kind of file (any, photos, videos, audio, other), and whether to look at archived items or not. |
 | [immich-search-album-filter](scripts/immich-search-album-filter.user.js) | Adds an *Album* section below *Library* in the search filters (under *Advanced filters*), with a searchable list of your albums. Pick one and every search is limited to it, whatever other filters you use; pick "All albums" to go back. |
 | [immich-albums-hide-archived](scripts/immich-albums-hide-archived.user.js) | Hides archived items inside albums by default. An eye button, crossed out while they are hidden, sits with the action buttons in the album's top bar. |
+| [immich-album-group-by-person](scripts/immich-album-group-by-person.user.js) | Adds a button to an album's top bar that opens the album grouped by person: a section per person with their face, name, photo count and thumbnails, most photos first. A photo with several people appears in each of their sections; faces you have not named are collected under *Unnamed people*, and photos without a recognised person under *No person*. Archived items follow the eye button of *immich-albums-hide-archived* (included when it says "Showing archived", and also when that script is not installed). |
 
 ## Why these exist
 
@@ -44,6 +45,7 @@ Click a link below. Tampermonkey opens an install page; click **Install**. Insta
 | Search within an album | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-album-search.user.js) |
 | Album filter for search | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-search-album-filter.user.js) |
 | Hide archived in albums | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-albums-hide-archived.user.js) |
+| Group an album by person | [Install](https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-album-group-by-person.user.js) |
 
 The links point at the raw `.user.js` files on `main`. Tampermonkey recognises that file type and shows its install page instead of the code. Each script also declares the same address as its update source, so Tampermonkey picks up new versions by itself (it checks about once a day; **Utilities > Check for userscript updates** in the dashboard does it now).
 
@@ -71,6 +73,7 @@ The choice is never remembered: every page load, and every album you open, start
 - **Search:** every result page is loaded up front (up to 40 pages), so big searches take longer to appear, and smart search loses its relevance order while sorted by date added. The choice is never remembered either.
 - **Video rotate:** only the picture in your browser is turned, not the file, so other devices, shares and other users still see the original. The turn is remembered per video in the browser's local storage (clearing site data forgets it). 360° panorama videos use a different player and are not rotated.
 - **Albums:** the asset count in the album header still counts archived items while they are hidden.
+- **Group by person:** it is a panel of its own, so opening a photo from it loads Immich's viewer afresh (archived items are hidden again there, and the viewer's next and previous follow the album's order, not the group). Every photo of the album is loaded up front (up to 40,000), and people you have hidden in Immich are skipped.
 
 ## How they work
 

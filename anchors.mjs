@@ -231,13 +231,13 @@ export const anchors = [
     means: 'the search page takes its whole search from the query address and passes every key on to the API',
   },
   {
-    scripts: ['album-search', 'album-sort'],
+    scripts: ['album-search', 'album-sort', 'album-group-by-person'],
     file: 'web/src/lib/components/shared-components/ControlAppBar.svelte',
     match: /data-testid="control-bar"[\s\S]*<ControlBarOverflow>[\s\S]*\{@render trailing\(\)\}/,
     means: 'the top bar has data-testid "control-bar" and puts the trailing action buttons in ControlBarOverflow (the button is added there)',
   },
   {
-    scripts: ['album-search', 'album-sort'],
+    scripts: ['album-search', 'album-sort', 'album-group-by-person'],
     file: ALBUM_PAGE,
     match: /<ControlAppBar backIcon=\{mdiArrowLeft\}[\s\S]*\{#snippet trailing\(\)\}[\s\S]*<ActionButton action=\{Actions\.Share\} \/>/,
     means: 'the normal album view has a top bar with trailing action buttons and no leading title',
@@ -433,5 +433,49 @@ export const anchors = [
     file: 'web/src/lib/components/asset-viewer/VideoNativeViewer.svelte',
     match: /<media-controller[\s\S]*?style:aspect-ratio=\{aspectRatio\}/,
     means: 'the player (media-controller) is shaped by an aspect-ratio style that the script swaps when the video is turned sideways',
+  },
+
+  // --- album: group by person ---------------------------------------------------
+  {
+    scripts: ['album-group-by-person'],
+    file: 'server/src/dtos/search.dto.ts',
+    match: /RandomSearchBaseSchema = [\s\S]*withPeople: z\.boolean\(\)\.optional\(\)[\s\S]*MetadataSearchSchema = withShapeExclusivity\(\s*RandomSearchBaseSchema\.extend/,
+    means: 'metadata search accepts withPeople, which adds the recognised people to each result',
+  },
+  {
+    scripts: ['album-group-by-person'],
+    file: 'server/src/dtos/search.dto.ts',
+    match: /size: z\.int\(\)\.min\(1\)\.max\(1000\)\.default\(250\)/,
+    means: 'a search page can hold up to 1000 results (the script asks for 1000 per page)',
+  },
+  {
+    scripts: ['album-group-by-person'],
+    file: 'server/src/dtos/search.dto.ts',
+    match: /visibility: AssetVisibilitySchema\.optional\(\)\.meta\(DEPRECATED_FLAT_FIELD\)/,
+    means: "search accepts a flat visibility filter ('timeline' for normal items, 'archive' for archived ones)",
+  },
+  {
+    scripts: ['album-group-by-person'],
+    file: 'server/src/dtos/asset-response.dto.ts',
+    match: /people: z\.array\(PersonResponseSchema\)\.optional\(\)/,
+    means: 'an asset in a search result lists its people (when asked for with withPeople)',
+  },
+  {
+    scripts: ['album-group-by-person'],
+    file: 'server/src/dtos/person.dto.ts',
+    match: /PersonResponseSchema = z[\s\S]*id: z\.uuidv4\(\)[\s\S]*name: z\.string\(\)[\s\S]*isHidden: z\.boolean\(\)/,
+    means: 'a person has an id, a name (empty when unnamed) and an isHidden flag',
+  },
+  {
+    scripts: ['album-group-by-person'],
+    file: 'server/src/controllers/person.controller.ts',
+    match: /@Get\(':id\/thumbnail'\)/,
+    means: "a person's face thumbnail is served at /api/people/<id>/thumbnail",
+  },
+  {
+    scripts: ['album-group-by-person'],
+    file: 'server/src/controllers/asset-media.controller.ts',
+    match: /@Get\(':id\/thumbnail'\)/,
+    means: "an asset's thumbnail is served at /api/assets/<id>/thumbnail",
   },
 ];
