@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Immich: hide archived in albums
 // @description  Hides archived assets inside albums by default, with an eye button in the top bar to show them.
-// @version      1.3.0
+// @version      1.3.1
 // @updateURL    https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-albums-hide-archived.user.js
 // @downloadURL  https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-albums-hide-archived.user.js
 // @include      /^https?:\/\/immich\..*/
@@ -87,7 +87,7 @@
     'M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9M12,4.5C17,4.5 21.27,7.61 23,12C21.27,16.39 17,19.5 12,19.5C7,19.5 2.73,16.39 1,12C2.73,7.61 7,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C15.76,17.5 19.17,15.36 20.82,12C19.17,8.64 15.76,6.5 12,6.5C8.24,6.5 4.83,8.64 3.18,12Z';
 
   // the row of action buttons on the right of the album's top bar
-  const ACTIONS = '#control-bar nav > div.ms-auto';
+  const ACTIONS = '#control-bar nav > div.ms-auto, [data-testid="control-bar"] nav > div.ms-auto';
 
   let button;
 

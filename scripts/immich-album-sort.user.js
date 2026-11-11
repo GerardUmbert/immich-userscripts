@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Immich: sort an album's contents
 // @description  Adds a sort button to an album's top bar (longest video, largest file, name, date added...) that opens the album as sorted search results.
-// @version      1.0.0
+// @version      1.0.1
 // @updateURL    https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-album-sort.user.js
 // @downloadURL  https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-album-sort.user.js
 // @include      /^https?:\/\/immich\..*/
@@ -137,7 +137,7 @@
   const SORT_ICON = 'M3 13H9V11H3V13M3 6V8H21V6H3M3 18H15V16H3V18Z';
 
   // the row of action buttons on the right of the album's top bar
-  const ACTIONS = '#control-bar nav > div.ms-auto';
+  const ACTIONS = '#control-bar nav > div.ms-auto, [data-testid="control-bar"] nav > div.ms-auto';
 
   let button;
 

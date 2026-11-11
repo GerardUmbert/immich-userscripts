@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Immich: sort search results
 // @description  Sorts the search results by date added (the default), video length, file size or name, with a sort menu in the top bar.
-// @version      1.1.1
+// @version      1.1.2
 // @updateURL    https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-search-sort-added.user.js
 // @downloadURL  https://raw.githubusercontent.com/GerardUmbert/immich-userscripts/main/scripts/immich-search-sort-added.user.js
 // @include      /^https?:\/\/immich\..*/
@@ -320,7 +320,7 @@
     // the top bar ("control-bar") is absolutely positioned, so it anchors the control.
     // While items are selected the page swaps it for a bar of action buttons on the right,
     // which this control would sit on top of; only the bar with the search field gets it.
-    const bar = document.getElementById('control-bar');
+    const bar = document.querySelector('#control-bar, [data-testid="control-bar"]');
     if (!bar || !bar.querySelector('input')) {
       closeMenu();
       button?.remove();

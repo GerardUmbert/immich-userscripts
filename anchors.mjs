@@ -9,7 +9,7 @@
 //
 // When a script starts relying on something new, add an anchor for it here.
 
-export const checkedAgainst = 'v3.3.6';
+export const checkedAgainst = 'v3.4.0';
 
 const RECENTLY_ADDED = 'web/src/routes/(user)/recently-added/[[photos=photos]]/[[assetId=id]]/+page.svelte';
 const ALBUM_PAGE = 'web/src/routes/(user)/albums/[albumId=id]/[[photos=photos]]/[[assetId=id]]/+page.svelte';
@@ -195,8 +195,8 @@ export const anchors = [
   {
     scripts: ['search-sort'],
     file: 'web/src/lib/components/shared-components/ControlAppBar.svelte',
-    match: /<div class="absolute top-0 w-full[^"]*" id="control-bar">/,
-    means: 'the top bar has id "control-bar" and is absolutely positioned (the button is placed inside it)',
+    match: /<div class="absolute top-0 w-full[^"]*" data-testid="control-bar">/,
+    means: 'the top bar has data-testid "control-bar" and is absolutely positioned (the button is placed inside it)',
   },
   {
     scripts: ['search-sort'],
@@ -233,8 +233,8 @@ export const anchors = [
   {
     scripts: ['album-search', 'album-sort'],
     file: 'web/src/lib/components/shared-components/ControlAppBar.svelte',
-    match: /id="control-bar"[\s\S]*<ControlBarOverflow>[\s\S]*\{@render trailing\(\)\}/,
-    means: 'the top bar has id "control-bar" and puts the trailing action buttons in ControlBarOverflow (the button is added there)',
+    match: /data-testid="control-bar"[\s\S]*<ControlBarOverflow>[\s\S]*\{@render trailing\(\)\}/,
+    means: 'the top bar has data-testid "control-bar" and puts the trailing action buttons in ControlBarOverflow (the button is added there)',
   },
   {
     scripts: ['album-search', 'album-sort'],
@@ -375,8 +375,8 @@ export const anchors = [
   {
     scripts: ['albums'],
     file: 'web/src/lib/components/shared-components/ControlAppBar.svelte',
-    match: /id="control-bar"[\s\S]*<ControlBarOverflow>[\s\S]*\{@render trailing\(\)\}/,
-    means: 'the top bar has id "control-bar" and puts the trailing action buttons in ControlBarOverflow (the eye is added there)',
+    match: /data-testid="control-bar"[\s\S]*<ControlBarOverflow>[\s\S]*\{@render trailing\(\)\}/,
+    means: 'the top bar has data-testid "control-bar" and puts the trailing action buttons in ControlBarOverflow (the eye is added there)',
   },
   {
     scripts: ['albums'],
